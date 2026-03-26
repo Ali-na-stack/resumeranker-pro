@@ -14,7 +14,190 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      candidate_scores: {
+        Row: {
+          candidate_id: string
+          certifications_score: number | null
+          created_at: string
+          education_score: number | null
+          experience_score: number | null
+          explanation: string | null
+          id: string
+          job_description_id: string
+          matched_skills: string[] | null
+          missing_skills: string[] | null
+          overall_score: number | null
+          projects_score: number | null
+          skills_score: number | null
+        }
+        Insert: {
+          candidate_id: string
+          certifications_score?: number | null
+          created_at?: string
+          education_score?: number | null
+          experience_score?: number | null
+          explanation?: string | null
+          id?: string
+          job_description_id: string
+          matched_skills?: string[] | null
+          missing_skills?: string[] | null
+          overall_score?: number | null
+          projects_score?: number | null
+          skills_score?: number | null
+        }
+        Update: {
+          candidate_id?: string
+          certifications_score?: number | null
+          created_at?: string
+          education_score?: number | null
+          experience_score?: number | null
+          explanation?: string | null
+          id?: string
+          job_description_id?: string
+          matched_skills?: string[] | null
+          missing_skills?: string[] | null
+          overall_score?: number | null
+          projects_score?: number | null
+          skills_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_scores_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_scores_job_description_id_fkey"
+            columns: ["job_description_id"]
+            isOneToOne: false
+            referencedRelation: "job_descriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_statuses: {
+        Row: {
+          candidate_id: string
+          id: string
+          status: Database["public"]["Enums"]["candidate_status"]
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          id?: string
+          status?: Database["public"]["Enums"]["candidate_status"]
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["candidate_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_statuses_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidates: {
+        Row: {
+          certifications: string[] | null
+          created_at: string
+          education: string | null
+          email: string | null
+          experience_roles: Json | null
+          experience_years: number | null
+          id: string
+          job_description_id: string
+          name: string | null
+          parsed_data: Json | null
+          projects: Json | null
+          quality_score: number | null
+          resume_filename: string | null
+          resume_url: string | null
+          skills: string[] | null
+        }
+        Insert: {
+          certifications?: string[] | null
+          created_at?: string
+          education?: string | null
+          email?: string | null
+          experience_roles?: Json | null
+          experience_years?: number | null
+          id?: string
+          job_description_id: string
+          name?: string | null
+          parsed_data?: Json | null
+          projects?: Json | null
+          quality_score?: number | null
+          resume_filename?: string | null
+          resume_url?: string | null
+          skills?: string[] | null
+        }
+        Update: {
+          certifications?: string[] | null
+          created_at?: string
+          education?: string | null
+          email?: string | null
+          experience_roles?: Json | null
+          experience_years?: number | null
+          id?: string
+          job_description_id?: string
+          name?: string | null
+          parsed_data?: Json | null
+          projects?: Json | null
+          quality_score?: number | null
+          resume_filename?: string | null
+          resume_url?: string | null
+          skills?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidates_job_description_id_fkey"
+            columns: ["job_description_id"]
+            isOneToOne: false
+            referencedRelation: "job_descriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_descriptions: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          parsed_requirements: Json | null
+          parsed_skills: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          parsed_requirements?: Json | null
+          parsed_skills?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          parsed_requirements?: Json | null
+          parsed_skills?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +206,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      candidate_status: "pending" | "shortlisted" | "rejected" | "saved"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +333,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      candidate_status: ["pending", "shortlisted", "rejected", "saved"],
+    },
   },
 } as const
