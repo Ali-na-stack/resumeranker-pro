@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import Dashboard from "./pages/Dashboard";
 import CandidatesPage from "./pages/CandidatesPage";
 import CandidateDetail from "./pages/CandidateDetail";
+import ComparePage from "./pages/ComparePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => {
                 <Route path="/candidates" element={<CandidatesPage biasReduction={biasReduction} />} />
                 <Route path="/shortlisted" element={<CandidatesPage biasReduction={biasReduction} filterStatus="shortlisted" />} />
                 <Route path="/candidate/:id" element={<CandidateDetail biasReduction={biasReduction} />} />
+                <Route path="/compare" element={<ComparePage biasReduction={biasReduction} />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>

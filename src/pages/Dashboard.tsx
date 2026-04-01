@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,7 +9,8 @@ import { ResumeUpload } from "@/components/ResumeUpload";
 import { CandidateCard } from "@/components/CandidateCard";
 import { fetchJobDescriptions, fetchCandidatesWithScores, rankCandidates } from "@/lib/api";
 import type { CandidateWithScore } from "@/lib/api";
-import { Loader2, Trophy, Zap } from "lucide-react";
+import { Loader2, Trophy, Zap, GitCompareArrows } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 interface DashboardProps {
@@ -47,7 +48,17 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
   const [candidates, setCandidates] = useState<CandidateWithScore[]>([]);
   const [loading, setLoading] = useState(false);
   const [ranking, setRanking] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   const loadJobs = async () => {
     const data = await fetchJobDescriptions();
     setJobs(data);
@@ -171,6 +182,15 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
                 <h2 className="font-display font-semibold text-lg">
                   Ranked Candidates ({candidates.length})
                 </h2>
+                {selectedIds.size >= 2 && (
+                  <Button
+                    size="sm"
+                    onClick={() => navigate(`/compare?job=${selectedJob}&ids=${Array.from(selectedIds).join(",")}`)}
+                  >
+                    <GitCompareArrows className="h-4 w-4 mr-1" />
+                    Compare ({selectedIds.size})
+                  </Button>
+                )}
               </div>
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -185,12 +205,19 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {candidates.map((c) => (
-                    <CandidateCard
-                      key={c.id}
-                      candidate={c}
-                      biasReduction={biasReduction}
-                      onStatusChange={loadCandidates}
-                    />
+                    <div key={c.id} className="relative">
+                      <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.has(c.id)}
+                          onCheckedChange={() => toggleSelect(c.id)}
+                        />
+                      </div>
+                      <CandidateCard
+                        candidate={c}
+                        biasReduction={biasReduction}
+                        onStatusChange={loadCandidates}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
