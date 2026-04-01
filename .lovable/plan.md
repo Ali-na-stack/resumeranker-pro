@@ -1,79 +1,48 @@
 
 
-## Intelligent CV Ranking System — Implementation Plan
+## Plan: Improve Upload UX, Loading States, and Candidate Card Navigation
 
-### Overview
-A full-stack CV ranking system that uses AI to parse resumes, extract structured data, and intelligently rank candidates against job descriptions. Built with React + Tailwind frontend and Supabase backend with Lovable AI for NLP processing.
+### 1. Server-Side PDF Parsing in `parse-resume` Edge Function
 
-### Architecture
-- **Frontend**: React + Tailwind with multi-page dashboard
-- **Backend**: Supabase (database, storage, edge functions)
-- **AI Layer**: Lovable AI Gateway via edge functions for resume parsing and job description analysis
-- **File Storage**: Supabase Storage for uploaded CVs (PDF/DOCX)
+**Problem:** Currently, PDF/DOCX text extraction happens client-side with `file.text()`, which produces garbled binary output for non-text files.
 
-### Pages & Navigation
-- **Dashboard** — Overview with active job posting, upload area, and ranked candidates list
-- **Candidates** — Full candidate list with filters, search, and bulk actions
-- **Shortlisted** — Filtered view of shortlisted candidates
-- **Candidate Detail** — Full parsed resume, score breakdown, strengths/gaps, original file preview
+**Solution:** Send the raw file as base64 to the `parse-resume` edge function. The edge function will decode it and pass the content to the AI model, which can handle raw text extraction from PDF content. For PDFs specifically, use `pdftotext`-style extraction on the server or pass the base64 directly to the AI model (Gemini supports document understanding).
 
-### Key Features
+**Changes:**
+- **`src/lib/api.ts`** — Update `parseResume` to accept a base64-encoded file and MIME type instead of extracted text. Remove the `extractTextFromFile` function.
+- **`src/components/ResumeUpload.tsx`** — Convert files to base64 before sending. Remove client-side text extraction step.
+- **`supabase/functions/parse-resume/index.ts`** — Accept `file_base64` and `mime_type`. Pass the file content to Gemini as a document/inline data part for direct parsing (Gemini supports PDF natively).
 
-**1. Job Description Input & Analysis**
-- Rich text area for job description
-- AI-powered extraction of required skills, preferred skills, experience level, and education requirements via edge function
-- Parsed JD stored in Supabase for comparison
+### 2. Improved File Upload UX
 
-**2. Resume Upload & AI Parsing**
-- Multi-file upload (PDF/DOCX) to Supabase Storage
-- Edge function sends file content to Lovable AI for structured extraction (name, email, skills, education, experience, projects, certifications)
-- Parsed data stored in `candidates` table
+**Changes to `src/components/ResumeUpload.tsx`:**
+- Add per-file processing status indicators (pending/uploading/parsing/done/error) with icons
+- Show a progress bar for overall batch progress
+- Add file size validation (reject files > 10MB)
+- Add duplicate file detection (by name)
+- Disable drag-drop area during upload
+- Show success/error state per file after processing
 
-**3. Intelligent Matching & Scoring**
-- Edge function compares each candidate against the job description using AI
-- Weighted scoring: Skills (40%), Experience (25%), Education (15%), Projects (10%), Certifications (10%)
-- AI handles skill synonyms (e.g., "JS" = "JavaScript") and partial matches
-- Returns match score, matched skills, missing skills, and explanation
+### 3. Improved Loading States
 
-**4. Ranked Dashboard**
-- Card-based candidate display sorted by score
-- Progress bars for match percentage
-- Top matched and missing skills shown per card
-- Sort and filter by score, skills, experience, education
+**Changes to `src/pages/Dashboard.tsx`:**
+- Add skeleton loading cards while candidates are loading (instead of just a spinner)
+- Show a loading overlay on the job description form during analysis
+- Add a shimmer/skeleton state for the candidate grid
 
-**5. Explainable Output**
-- Each candidate gets a human-readable summary explaining their score
-- Score breakdown chart (skills, experience, education, projects, certs)
-- Matched vs. missing skills visualization
+**Changes to `src/components/JobDescriptionForm.tsx`:**
+- Add animated step indicators during analysis ("Analyzing description...", "Extracting requirements...")
 
-**6. Recruiter Actions**
-- Shortlist, Reject, Save for Later buttons on each candidate
-- Status persisted in database
-- Bulk actions on candidate list
+### 4. Candidate Card Navigation Fix
 
-**7. Bias Reduction Mode**
-- Toggle to hide names, emails, and personal identifiers
-- Rankings based purely on skills, experience, and education
+**Current state:** The card already has `onClick={() => navigate(...)}` on line 46. The buttons already have `e.stopPropagation()` on line 128. This should already work.
 
-**8. Resume Quality Score**
-- AI evaluates completeness, structure, and presence of key sections
-- Displayed as a secondary metric on candidate cards
+**Improvement:** Add visual hover indicator (arrow icon) to make it clear cards are clickable. Add the job query param to ensure the detail page loads correctly.
 
-### Database Schema (Supabase)
-- **job_descriptions** — id, title, description, parsed_skills, parsed_requirements, created_at
-- **candidates** — id, job_description_id, name, email, skills[], education, experience_years, experience_roles[], projects[], certifications[], resume_url, parsed_data (JSONB), created_at
-- **candidate_scores** — id, candidate_id, job_description_id, overall_score, skills_score, experience_score, education_score, projects_score, certs_score, matched_skills[], missing_skills[], explanation, quality_score
-- **candidate_statuses** — id, candidate_id, status (shortlisted/rejected/saved), updated_at
-
-### Edge Functions
-- **parse-resume** — Receives uploaded file, sends to Lovable AI for structured extraction
-- **analyze-job** — Parses job description into structured requirements
-- **rank-candidates** — Compares parsed candidates against job requirements, returns scores and explanations
-
-### UI Design
-- Clean, professional dashboard with sidebar navigation
-- Card-based candidate display with color-coded score badges (green/yellow/red)
-- Progress bars and radar charts for score breakdowns
-- Responsive design for desktop and tablet
-- Tabs: Dashboard / Candidates / Shortlisted
+### Files to Modify
+- `supabase/functions/parse-resume/index.ts` — Accept base64 file, use Gemini's native document parsing
+- `src/lib/api.ts` — Update parseResume signature, remove extractTextFromFile
+- `src/components/ResumeUpload.tsx` — Base64 conversion, per-file status UI, validation
+- `src/pages/Dashboard.tsx` — Skeleton loading for candidate grid
+- `src/components/CandidateCard.tsx` — Add hover arrow indicator
 
