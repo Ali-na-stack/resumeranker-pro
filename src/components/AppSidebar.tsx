@@ -1,8 +1,10 @@
-import { LayoutDashboard, Users, Star, Eye, EyeOff } from "lucide-react";
+import { LayoutDashboard, Users, Star, Eye, EyeOff, Sun, Moon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
