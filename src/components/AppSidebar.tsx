@@ -33,6 +33,7 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
