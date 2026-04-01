@@ -40,6 +40,7 @@ const App = () => {
           </SidebarProvider>
         </BrowserRouter>
       </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

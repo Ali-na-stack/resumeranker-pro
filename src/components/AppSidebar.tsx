@@ -70,7 +70,22 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
         </SidebarGroup>
       </SidebarContent>
       {!collapsed && (
-        <SidebarFooter className="p-4">
+        <SidebarFooter className="p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-xs text-sidebar-foreground/70 hover:text-sidebar-foreground"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4 mr-2" />
+              ) : (
+                <Moon className="h-4 w-4 mr-2" />
+              )}
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+            </Button>
+          </div>
           <div className="flex items-center gap-2">
             {biasReduction ? (
               <EyeOff className="h-4 w-4 text-sidebar-foreground/70" />
