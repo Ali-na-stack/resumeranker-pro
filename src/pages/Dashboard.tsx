@@ -7,9 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { JobDescriptionForm } from "@/components/JobDescriptionForm";
 import { ResumeUpload } from "@/components/ResumeUpload";
 import { CandidateCard } from "@/components/CandidateCard";
+import { StatsSummary } from "@/components/StatsSummary";
+import { EmptyState } from "@/components/EmptyState";
 import { fetchJobDescriptions, fetchCandidatesWithScores, rankCandidates } from "@/lib/api";
 import type { CandidateWithScore } from "@/lib/api";
-import { Loader2, Trophy, Zap, GitCompareArrows, Download, FileText } from "lucide-react";
+import { Loader2, Briefcase, Zap, GitCompareArrows, Download, FileText, FileUp } from "lucide-react";
 import { exportCandidatesCSV, exportCandidatesPDF } from "@/lib/export";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -20,24 +22,31 @@ interface DashboardProps {
 
 function CandidateSkeleton() {
   return (
-    <div className="rounded-lg border bg-card p-5 space-y-3">
+    <div className="rounded-lg border bg-card p-5 space-y-3 animate-pulse">
       <div className="flex items-start justify-between">
-        <div className="space-y-2 flex-1">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-3 w-24" />
+        <div className="flex items-center gap-3 flex-1">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-24" />
+          </div>
         </div>
         <Skeleton className="h-14 w-14 rounded-full" />
       </div>
-      <Skeleton className="h-2 w-full" />
+      <Skeleton className="h-2.5 w-full rounded-full" />
       <div className="space-y-2">
         <Skeleton className="h-3 w-20" />
         <div className="flex gap-1">
-          <Skeleton className="h-4 w-14 rounded-full" />
-          <Skeleton className="h-4 w-16 rounded-full" />
-          <Skeleton className="h-4 w-12 rounded-full" />
+          <Skeleton className="h-5 w-14 rounded-full" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-5 w-12 rounded-full" />
         </div>
       </div>
-      <Skeleton className="h-7 w-full" />
+      <div className="flex gap-2 pt-2">
+        <Skeleton className="h-8 flex-1 rounded-md" />
+        <Skeleton className="h-8 flex-1 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-md" />
+      </div>
     </div>
   );
 }
@@ -60,6 +69,7 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
       return next;
     });
   };
+
   const loadJobs = async () => {
     const data = await fetchJobDescriptions();
     setJobs(data);
@@ -103,11 +113,20 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
     }
   };
 
+  const currentJobTitle = jobs.find((j) => j.id === selectedJob)?.title;
+
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      <header className="h-14 flex items-center border-b bg-card px-4 gap-4">
+      <header className="h-14 flex items-center border-b bg-card/80 backdrop-blur-sm px-4 gap-4 sticky top-0 z-20">
         <SidebarTrigger />
-        <h1 className="font-display font-bold text-lg">Dashboard</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="font-display font-bold text-lg">Dashboard</h1>
+          {currentJobTitle && (
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full hidden sm:inline">
+              {currentJobTitle}
+            </span>
+          )}
+        </div>
         {jobs.length > 0 && (
           <Select value={selectedJob} onValueChange={setSelectedJob}>
             <SelectTrigger className="w-[250px] ml-auto">
@@ -127,15 +146,11 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
       <main className="flex-1 p-6 space-y-6 overflow-auto">
         {!selectedJob ? (
           <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-              <Trophy className="h-12 w-12 mx-auto mb-3 text-primary" />
-              <h2 className="font-display text-2xl font-bold mb-2">
-                Intelligent CV Ranking System
-              </h2>
-              <p className="text-muted-foreground">
-                Start by entering a job description to analyze and rank candidates.
-              </p>
-            </div>
+            <EmptyState
+              icon={Briefcase}
+              title="Intelligent CV Ranking System"
+              subtitle="Start by entering a job description to analyze and rank candidates automatically using AI."
+            />
             <JobDescriptionForm
               onJobCreated={(id) => {
                 setSelectedJob(id);
@@ -144,110 +159,114 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1 space-y-4">
-              <JobDescriptionForm
-                onJobCreated={(id) => {
-                  setSelectedJob(id);
-                  loadJobs();
-                }}
-              />
-              <ResumeUpload
-                jobDescriptionId={selectedJob}
-                onUploadComplete={loadCandidates}
-              />
-              {candidates.length > 0 && (
-                <Button
-                  onClick={handleRank}
-                  disabled={ranking}
-                  className="w-full"
-                  size="lg"
-                >
-                  {ranking ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Ranking candidates...
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="h-4 w-4" />
-                      Rank All Candidates
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
+          <div className="space-y-6">
+            {/* Stats Summary */}
+            {candidates.length > 0 && <StatsSummary candidates={candidates} />}
 
-            <div className="lg:col-span-2">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display font-semibold text-lg">
-                  Ranked Candidates ({candidates.length})
-                </h2>
-                <div className="flex items-center gap-2">
-                  {candidates.length > 0 && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const job = jobs.find((j) => j.id === selectedJob);
-                          exportCandidatesCSV(candidates, job?.title || "Candidates");
-                        }}
-                      >
-                        <Download className="h-3.5 w-3.5 mr-1" /> CSV
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const job = jobs.find((j) => j.id === selectedJob);
-                          exportCandidatesPDF(candidates, job?.title || "Candidates");
-                        }}
-                      >
-                        <FileText className="h-3.5 w-3.5 mr-1" /> PDF
-                      </Button>
-                    </>
-                  )}
-                  {selectedIds.size >= 2 && (
-                    <Button
-                      size="sm"
-                      onClick={() => navigate(`/compare?job=${selectedJob}&ids=${Array.from(selectedIds).join(",")}`)}
-                    >
-                      <GitCompareArrows className="h-4 w-4 mr-1" />
-                      Compare ({selectedIds.size})
-                    </Button>
-                  )}
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1 space-y-4">
+                <JobDescriptionForm
+                  onJobCreated={(id) => {
+                    setSelectedJob(id);
+                    loadJobs();
+                  }}
+                />
+                <ResumeUpload
+                  jobDescriptionId={selectedJob}
+                  onUploadComplete={loadCandidates}
+                />
+                {candidates.length > 0 && (
+                  <Button
+                    onClick={handleRank}
+                    disabled={ranking}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {ranking ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Ranking candidates...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="h-4 w-4" />
+                        Rank All Candidates
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
-              {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <CandidateSkeleton key={i} />
-                  ))}
+
+              <div className="lg:col-span-2">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-display font-semibold text-lg">
+                    Ranked Candidates
+                    <span className="ml-2 text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      {candidates.length}
+                    </span>
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    {candidates.length > 0 && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportCandidatesCSV(candidates, currentJobTitle || "Candidates")}
+                        >
+                          <Download className="h-3.5 w-3.5 mr-1" /> CSV
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportCandidatesPDF(candidates, currentJobTitle || "Candidates")}
+                        >
+                          <FileText className="h-3.5 w-3.5 mr-1" /> PDF
+                        </Button>
+                      </>
+                    )}
+                    {selectedIds.size >= 2 && (
+                      <Button
+                        size="sm"
+                        onClick={() => navigate(`/compare?job=${selectedJob}&ids=${Array.from(selectedIds).join(",")}`)}
+                      >
+                        <GitCompareArrows className="h-4 w-4 mr-1" />
+                        Compare ({selectedIds.size})
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              ) : candidates.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p>No candidates yet. Upload resumes to get started.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {candidates.map((c) => (
-                    <div key={c.id} className="relative">
-                      <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={selectedIds.has(c.id)}
-                          onCheckedChange={() => toggleSelect(c.id)}
+                {loading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[...Array(4)].map((_, i) => (
+                      <CandidateSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : candidates.length === 0 ? (
+                  <EmptyState
+                    icon={FileUp}
+                    title="No Candidates Yet"
+                    subtitle="Upload resumes on the left panel to start ranking candidates against this job description."
+                  />
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {candidates.map((c) => (
+                      <div key={c.id} className="relative">
+                        <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(c.id)}
+                            onCheckedChange={() => toggleSelect(c.id)}
+                          />
+                        </div>
+                        <CandidateCard
+                          candidate={c}
+                          biasReduction={biasReduction}
+                          onStatusChange={loadCandidates}
                         />
                       </div>
-                      <CandidateCard
-                        candidate={c}
-                        biasReduction={biasReduction}
-                        onStatusChange={loadCandidates}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

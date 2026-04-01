@@ -125,3 +125,14 @@
     @apply text-[hsl(var(--destructive))];
   }
 }
+
+/* Smooth transitions */
+* {
+  @apply transition-colors duration-150;
+}
+
+/* Subtle background pattern */
+body {
+  background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
