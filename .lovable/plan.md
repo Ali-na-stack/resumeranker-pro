@@ -1,48 +1,52 @@
 
 
-## Plan: Improve Upload UX, Loading States, and Candidate Card Navigation
+## UI Polish Pass — Professional Refinements
 
-### 1. Server-Side PDF Parsing in `parse-resume` Edge Function
+### Overview
+A comprehensive visual upgrade to make the interface feel like a production-grade SaaS tool rather than a prototype. No functional changes — purely visual and UX refinements.
 
-**Problem:** Currently, PDF/DOCX text extraction happens client-side with `file.text()`, which produces garbled binary output for non-text files.
+### Changes
 
-**Solution:** Send the raw file as base64 to the `parse-resume` edge function. The edge function will decode it and pass the content to the AI model, which can handle raw text extraction from PDF content. For PDFs specifically, use `pdftotext`-style extraction on the server or pass the base64 directly to the AI model (Gemini supports document understanding).
+**1. Dashboard Redesign (`src/pages/Dashboard.tsx`)**
+- Replace the trophy hero with a compact header bar showing job title + stats summary ("X candidates | Y shortlisted | Avg score: Z%")
+- Add an illustrated empty state when no job is selected
+- Add section dividers and better visual hierarchy between job form, upload, and candidate grid
 
-**Changes:**
-- **`src/lib/api.ts`** — Update `parseResume` to accept a base64-encoded file and MIME type instead of extracted text. Remove the `extractTextFromFile` function.
-- **`src/components/ResumeUpload.tsx`** — Convert files to base64 before sending. Remove client-side text extraction step.
-- **`supabase/functions/parse-resume/index.ts`** — Accept `file_base64` and `mime_type`. Pass the file content to Gemini as a document/inline data part for direct parsing (Gemini supports PDF natively).
+**2. Candidate Card Polish (`src/components/CandidateCard.tsx`)**
+- Add colored initials avatar circle (first letter of name) instead of generic icon
+- Add hover shadow elevation (`shadow-md` → `shadow-xl` on hover) with smooth transition
+- Make score badge glow with a subtle box-shadow matching score color
+- Increase progress bar height and add percentage labels
+- Style Shortlist/Reject buttons with filled variants and better spacing
+- Add a subtle top border accent color based on score
 
-### 2. Improved File Upload UX
+**3. Sidebar Enhancement (`src/components/AppSidebar.tsx`)**
+- Add a small logo/brand icon next to "CV RANKER"
+- Add a subtle gradient or accent line on the left edge of active nav items
+- Add a user/profile placeholder at the bottom
 
-**Changes to `src/components/ResumeUpload.tsx`:**
-- Add per-file processing status indicators (pending/uploading/parsing/done/error) with icons
-- Show a progress bar for overall batch progress
-- Add file size validation (reject files > 10MB)
-- Add duplicate file detection (by name)
-- Disable drag-drop area during upload
-- Show success/error state per file after processing
+**4. Global Refinements (`src/index.css`, `tailwind.config.ts`)**
+- Add reusable card hover transition utilities
+- Add subtle background pattern or gradient to the main content area
+- Refine focus ring styles for better accessibility
+- Add smooth page transition animations
 
-### 3. Improved Loading States
+**5. Stats Summary Component (new: `src/components/StatsSummary.tsx`)**
+- Horizontal bar showing: Total candidates, Shortlisted count, Rejected count, Average match score
+- Used on Dashboard below the job selector
 
-**Changes to `src/pages/Dashboard.tsx`:**
-- Add skeleton loading cards while candidates are loading (instead of just a spinner)
-- Show a loading overlay on the job description form during analysis
-- Add a shimmer/skeleton state for the candidate grid
+**6. Empty State Component (new: `src/components/EmptyState.tsx`)**
+- Reusable component with illustration, title, and subtitle
+- Used when no job selected, no candidates uploaded, etc.
 
-**Changes to `src/components/JobDescriptionForm.tsx`:**
-- Add animated step indicators during analysis ("Analyzing description...", "Extracting requirements...")
-
-### 4. Candidate Card Navigation Fix
-
-**Current state:** The card already has `onClick={() => navigate(...)}` on line 46. The buttons already have `e.stopPropagation()` on line 128. This should already work.
-
-**Improvement:** Add visual hover indicator (arrow icon) to make it clear cards are clickable. Add the job query param to ensure the detail page loads correctly.
+### Files to Create
+- `src/components/StatsSummary.tsx`
+- `src/components/EmptyState.tsx`
 
 ### Files to Modify
-- `supabase/functions/parse-resume/index.ts` — Accept base64 file, use Gemini's native document parsing
-- `src/lib/api.ts` — Update parseResume signature, remove extractTextFromFile
-- `src/components/ResumeUpload.tsx` — Base64 conversion, per-file status UI, validation
-- `src/pages/Dashboard.tsx` — Skeleton loading for candidate grid
-- `src/components/CandidateCard.tsx` — Add hover arrow indicator
+- `src/pages/Dashboard.tsx` — Stats bar, empty states, layout refinement
+- `src/components/CandidateCard.tsx` — Avatar, shadows, glow, progress bars
+- `src/components/AppSidebar.tsx` — Logo icon, active indicator
+- `src/index.css` — Transition utilities, background refinements
+- `src/components/JobDescriptionForm.tsx` — Compact header styling
 
