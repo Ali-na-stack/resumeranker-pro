@@ -48,7 +48,17 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
   const [candidates, setCandidates] = useState<CandidateWithScore[]>([]);
   const [loading, setLoading] = useState(false);
   const [ranking, setRanking] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   const loadJobs = async () => {
     const data = await fetchJobDescriptions();
     setJobs(data);
