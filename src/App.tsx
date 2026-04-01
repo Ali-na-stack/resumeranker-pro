@@ -31,6 +31,7 @@ const App = () => {
                 <Route path="/candidates" element={<CandidatesPage biasReduction={biasReduction} />} />
                 <Route path="/shortlisted" element={<CandidatesPage biasReduction={biasReduction} filterStatus="shortlisted" />} />
                 <Route path="/candidate/:id" element={<CandidateDetail biasReduction={biasReduction} />} />
+                <Route path="/compare" element={<ComparePage biasReduction={biasReduction} />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
