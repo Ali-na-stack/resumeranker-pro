@@ -183,15 +183,41 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
                 <h2 className="font-display font-semibold text-lg">
                   Ranked Candidates ({candidates.length})
                 </h2>
-                {selectedIds.size >= 2 && (
-                  <Button
-                    size="sm"
-                    onClick={() => navigate(`/compare?job=${selectedJob}&ids=${Array.from(selectedIds).join(",")}`)}
-                  >
-                    <GitCompareArrows className="h-4 w-4 mr-1" />
-                    Compare ({selectedIds.size})
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  {candidates.length > 0 && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const job = jobs.find((j) => j.id === selectedJob);
+                          exportCandidatesCSV(candidates, job?.title || "Candidates");
+                        }}
+                      >
+                        <Download className="h-3.5 w-3.5 mr-1" /> CSV
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const job = jobs.find((j) => j.id === selectedJob);
+                          exportCandidatesPDF(candidates, job?.title || "Candidates");
+                        }}
+                      >
+                        <FileText className="h-3.5 w-3.5 mr-1" /> PDF
+                      </Button>
+                    </>
+                  )}
+                  {selectedIds.size >= 2 && (
+                    <Button
+                      size="sm"
+                      onClick={() => navigate(`/compare?job=${selectedJob}&ids=${Array.from(selectedIds).join(",")}`)}
+                    >
+                      <GitCompareArrows className="h-4 w-4 mr-1" />
+                      Compare ({selectedIds.size})
+                    </Button>
+                  )}
+                </div>
               </div>
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
