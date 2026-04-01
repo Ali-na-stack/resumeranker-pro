@@ -79,16 +79,16 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      <header className="h-14 flex items-center border-b bg-card px-4 gap-4">
+      <header className="min-h-[3.5rem] flex flex-wrap items-center border-b bg-card px-3 sm:px-4 gap-2 sm:gap-4 py-2">
         <SidebarTrigger />
         <Button variant="ghost" size="sm" onClick={() => navigate(`/?job=${jobId}`)}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          <ArrowLeft className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Back</span>
         </Button>
-        <h1 className="font-display font-bold text-lg">Compare Candidates</h1>
+        <h1 className="font-display font-bold text-base sm:text-lg">Compare Candidates</h1>
         <Badge variant="secondary" className="ml-auto">{candidates.length} candidates</Badge>
       </header>
 
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="flex-1 p-4 sm:p-6 overflow-auto">
         {loading ? (
           <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(ids.length, 4)}, 1fr)` }}>
             {ids.map((_, i) => (
@@ -108,7 +108,8 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
         ) : (
           <div className="space-y-6">
             {/* Overview row */}
-            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, 1fr)` }}>
+            <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, minmax(200px, 1fr))` }}>
               {candidates.map((c) => {
                 const score = c.score?.overall_score ?? 0;
                 return (
@@ -154,6 +155,7 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
                   </Card>
                 );
               })}
+              </div>
             </div>
 
             {/* Score breakdown */}
@@ -164,7 +166,8 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, 1fr)` }}>
+                <div className="overflow-x-auto">
+                  <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, minmax(180px, 1fr))` }}>
                   {candidates.map((c) => (
                     <div key={c.id} className="space-y-3">
                       <p className="text-xs font-medium text-center truncate">
@@ -177,6 +180,7 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
                       <ScoreBar label="Certifications" score={c.score?.certifications_score ?? null} icon={Award} />
                     </div>
                   ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -235,17 +239,19 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
                   <CardTitle className="text-sm font-display">AI Assessment</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, 1fr)` }}>
-                    {candidates.map((c) => (
-                      <div key={c.id} className="space-y-1">
-                        <p className="text-xs font-medium">
-                          {biasReduction ? `#${c.id.slice(0, 6)}` : c.name || "Unknown"}
-                        </p>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {c.score?.explanation || "No assessment available."}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, minmax(200px, 1fr))` }}>
+                      {candidates.map((c) => (
+                        <div key={c.id} className="space-y-1">
+                          <p className="text-xs font-medium">
+                            {biasReduction ? `#${c.id.slice(0, 6)}` : c.name || "Unknown"}
+                          </p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {c.score?.explanation || "No assessment available."}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
