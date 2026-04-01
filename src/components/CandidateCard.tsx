@@ -42,9 +42,12 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange }: Cand
 
   return (
     <Card
-      className="hover:shadow-md transition-shadow cursor-pointer group"
+      className="hover:shadow-md transition-all cursor-pointer group relative"
       onClick={() => navigate(`/candidate/${candidate.id}?job=${candidate.job_description_id}`)}
     >
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+      </div>
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
