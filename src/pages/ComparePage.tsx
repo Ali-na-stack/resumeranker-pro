@@ -180,6 +180,7 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
                       <ScoreBar label="Certifications" score={c.score?.certifications_score ?? null} icon={Award} />
                     </div>
                   ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
