@@ -157,23 +157,24 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
               </Card>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant={candidate.status === "shortlisted" ? "default" : "outline"}
-                className="flex-1"
+                className="flex-1 min-w-[100px] min-h-[44px]"
                 onClick={() => handleStatus("shortlisted")}
               >
                 <Star className="h-4 w-4" /> Shortlist
               </Button>
               <Button
                 variant={candidate.status === "rejected" ? "destructive" : "outline"}
-                className="flex-1"
+                className="flex-1 min-w-[100px] min-h-[44px]"
                 onClick={() => handleStatus("rejected")}
               >
                 <X className="h-4 w-4" /> Reject
               </Button>
               <Button
                 variant={candidate.status === "saved" ? "secondary" : "outline"}
+                className="min-h-[44px]"
                 onClick={() => handleStatus("saved")}
               >
                 <Bookmark className="h-4 w-4" />

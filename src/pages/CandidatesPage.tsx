@@ -79,9 +79,9 @@ export default function CandidatesPage({ biasReduction, filterStatus }: Candidat
         </Select>
       </header>
 
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="flex flex-wrap gap-4 mb-6 items-end">
-          <div className="flex-1 min-w-[200px]">
+      <main className="flex-1 p-4 sm:p-6 overflow-auto">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 mb-6 sm:items-end">
+          <div className="w-full sm:flex-1 sm:min-w-[200px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -92,7 +92,7 @@ export default function CandidatesPage({ biasReduction, filterStatus }: Candidat
               />
             </div>
           </div>
-          <div className="w-[200px]">
+          <div className="w-full sm:w-[200px]">
             <Label className="text-xs text-muted-foreground mb-1 block">
               Min Score: {minScore}%
             </Label>
@@ -103,9 +103,9 @@ export default function CandidatesPage({ biasReduction, filterStatus }: Candidat
               step={5}
             />
           </div>
-          <div>
+          <div className="w-full sm:w-auto">
             <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SlidersHorizontal className="h-3 w-3 mr-1" />
                 <SelectValue />
               </SelectTrigger>

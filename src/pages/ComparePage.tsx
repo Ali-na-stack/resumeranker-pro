@@ -108,7 +108,8 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
         ) : (
           <div className="space-y-6">
             {/* Overview row */}
-            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, 1fr)` }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" style={{ gridTemplateColumns: undefined }} >
+              <style>{`@media (min-width: 768px) { .compare-grid { grid-template-columns: repeat(${candidates.length}, 1fr) !important; } }`}</style>
               {candidates.map((c) => {
                 const score = c.score?.overall_score ?? 0;
                 return (
