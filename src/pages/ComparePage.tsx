@@ -155,6 +155,7 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
                   </Card>
                 );
               })}
+              </div>
             </div>
 
             {/* Score breakdown */}
