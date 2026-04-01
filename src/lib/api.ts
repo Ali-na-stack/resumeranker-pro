@@ -52,14 +52,18 @@ export async function analyzeJob(title: string, description: string) {
 
 export async function parseResume(
   jobDescriptionId: string,
-  resumeText: string,
+  file: File,
   resumeUrl?: string,
   resumeFilename?: string
 ) {
+  // Convert file to base64 for server-side parsing
+  const base64 = await fileToBase64(file);
+
   const { data, error } = await supabase.functions.invoke("parse-resume", {
     body: {
       job_description_id: jobDescriptionId,
-      resume_text: resumeText,
+      file_base64: base64,
+      mime_type: file.type || "application/octet-stream",
       resume_url: resumeUrl,
       resume_filename: resumeFilename,
     },
@@ -69,6 +73,20 @@ export async function parseResume(
     throw error;
   }
   return data;
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Strip the data URL prefix (data:...;base64,)
+      const base64 = result.split(",")[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 export async function rankCandidates(jobDescriptionId: string) {
@@ -147,22 +165,6 @@ export async function uploadResumeFile(file: File, jobDescriptionId: string) {
   }
   const { data: urlData } = supabase.storage.from("resumes").getPublicUrl(filePath);
   return urlData.publicUrl;
-}
-
-export async function extractTextFromFile(file: File): Promise<string> {
-  // For text files, read directly
-  if (file.type === "text/plain") {
-    return await file.text();
-  }
-  // For PDF/DOCX, read as text (basic extraction)
-  // The AI model will handle imperfect text extraction
-  const text = await file.text();
-  // Clean up binary artifacts for PDF/DOCX
-  const cleaned = text
-    .replace(/[^\x20-\x7E\n\r\t]/g, " ")
-    .replace(/\s{3,}/g, "\n")
-    .trim();
-  return cleaned || `[File: ${file.name} - Content could not be extracted client-side. The file has been uploaded for reference.]`;
 }
 
 export async function fetchJobDescriptions() {

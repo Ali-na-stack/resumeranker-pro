@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Star, X, Bookmark, User } from "lucide-react";
+import { Star, X, Bookmark, User, ArrowRight } from "lucide-react";
 import type { CandidateWithScore } from "@/lib/api";
 import { updateCandidateStatus } from "@/lib/api";
 import { toast } from "sonner";

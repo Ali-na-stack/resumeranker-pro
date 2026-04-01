@@ -10,12 +10,32 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { job_description_id, resume_url, resume_filename, resume_text } = await req.json();
+    const { job_description_id, resume_url, resume_filename, file_base64, mime_type, resume_text } = await req.json();
     if (!job_description_id) throw new Error("job_description_id is required");
-    if (!resume_text) throw new Error("resume_text is required");
+    if (!file_base64 && !resume_text) throw new Error("file_base64 or resume_text is required");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    // Build the user message content - support both base64 file and plain text
+    let userContent: any;
+    if (file_base64 && mime_type) {
+      // Use Gemini's native multimodal: send file inline for direct document understanding
+      userContent = [
+        {
+          type: "text",
+          text: "Parse this resume document and extract all structured data including name, email, skills, education, experience, projects, and certifications. Be thorough and accurate."
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: `data:${mime_type};base64,${file_base64}`
+          }
+        }
+      ];
+    } else {
+      userContent = `Parse this resume and extract structured data:\n\n${resume_text}`;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -32,7 +52,7 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: `Parse this resume and extract structured data:\n\n${resume_text}`
+            content: userContent
           }
         ],
         tools: [{
