@@ -239,17 +239,19 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
                   <CardTitle className="text-sm font-display">AI Assessment</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, 1fr)` }}>
-                    {candidates.map((c) => (
-                      <div key={c.id} className="space-y-1">
-                        <p className="text-xs font-medium">
-                          {biasReduction ? `#${c.id.slice(0, 6)}` : c.name || "Unknown"}
-                        </p>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {c.score?.explanation || "No assessment available."}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, minmax(200px, 1fr))` }}>
+                      {candidates.map((c) => (
+                        <div key={c.id} className="space-y-1">
+                          <p className="text-xs font-medium">
+                            {biasReduction ? `#${c.id.slice(0, 6)}` : c.name || "Unknown"}
+                          </p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {c.score?.explanation || "No assessment available."}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
