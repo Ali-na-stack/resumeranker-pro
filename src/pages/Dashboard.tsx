@@ -9,7 +9,8 @@ import { ResumeUpload } from "@/components/ResumeUpload";
 import { CandidateCard } from "@/components/CandidateCard";
 import { fetchJobDescriptions, fetchCandidatesWithScores, rankCandidates } from "@/lib/api";
 import type { CandidateWithScore } from "@/lib/api";
-import { Loader2, Trophy, Zap } from "lucide-react";
+import { Loader2, Trophy, Zap, GitCompareArrows } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 interface DashboardProps {
