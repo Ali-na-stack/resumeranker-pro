@@ -1,8 +1,10 @@
-import { LayoutDashboard, Users, Star, Eye, EyeOff } from "lucide-react";
+import { LayoutDashboard, Users, Star, Eye, EyeOff, Sun, Moon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +33,7 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
@@ -67,7 +70,22 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
         </SidebarGroup>
       </SidebarContent>
       {!collapsed && (
-        <SidebarFooter className="p-4">
+        <SidebarFooter className="p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-xs text-sidebar-foreground/70 hover:text-sidebar-foreground"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4 mr-2" />
+              ) : (
+                <Moon className="h-4 w-4 mr-2" />
+              )}
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+            </Button>
+          </div>
           <div className="flex items-center gap-2">
             {biasReduction ? (
               <EyeOff className="h-4 w-4 text-sidebar-foreground/70" />
