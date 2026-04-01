@@ -166,7 +166,8 @@ export default function ComparePage({ biasReduction }: ComparePageProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, 1fr)` }}>
+                <div className="overflow-x-auto">
+                  <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${candidates.length}, minmax(180px, 1fr))` }}>
                   {candidates.map((c) => (
                     <div key={c.id} className="space-y-3">
                       <p className="text-xs font-medium text-center truncate">
