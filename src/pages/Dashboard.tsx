@@ -182,6 +182,15 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
                 <h2 className="font-display font-semibold text-lg">
                   Ranked Candidates ({candidates.length})
                 </h2>
+                {selectedIds.size >= 2 && (
+                  <Button
+                    size="sm"
+                    onClick={() => navigate(`/compare?job=${selectedJob}&ids=${Array.from(selectedIds).join(",")}`)}
+                  >
+                    <GitCompareArrows className="h-4 w-4 mr-1" />
+                    Compare ({selectedIds.size})
+                  </Button>
+                )}
               </div>
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -196,12 +205,19 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {candidates.map((c) => (
-                    <CandidateCard
-                      key={c.id}
-                      candidate={c}
-                      biasReduction={biasReduction}
-                      onStatusChange={loadCandidates}
-                    />
+                    <div key={c.id} className="relative">
+                      <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.has(c.id)}
+                          onCheckedChange={() => toggleSelect(c.id)}
+                        />
+                      </div>
+                      <CandidateCard
+                        candidate={c}
+                        biasReduction={biasReduction}
+                        onStatusChange={loadCandidates}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
