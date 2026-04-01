@@ -1,10 +1,43 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { BlobReader, ZipReader, TextWriter } from "https://deno.land/x/zipjs@v2.7.32/index.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+// Extract text from DOCX by reading word/document.xml from the zip and stripping XML tags
+async function extractDocxText(base64: string): Promise<string> {
+  const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+  const blob = new Blob([binary]);
+  const reader = new ZipReader(new BlobReader(blob));
+  const entries = await reader.getEntries();
+  
+  const docEntry = entries.find(e => e.filename === "word/document.xml");
+  if (!docEntry || !docEntry.getData) {
+    await reader.close();
+    return "";
+  }
+  
+  const xml = await docEntry.getData(new TextWriter());
+  await reader.close();
+  
+  // Strip XML tags, decode basic entities, collapse whitespace
+  const text = xml
+    .replace(/<w:p[^>]*>/g, "\n") // paragraph breaks
+    .replace(/<[^>]+>/g, " ")     // strip all tags
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  
+  return text;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -17,10 +50,25 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    // Build the user message content - support both base64 file and plain text
+    // Determine how to send content to the AI
     let userContent: any;
-    if (file_base64 && mime_type) {
-      // Use Gemini's native multimodal: send file inline for direct document understanding
+    const isImage = mime_type && (mime_type.startsWith("image/") || mime_type === "application/pdf");
+    const isDocx = mime_type && (
+      mime_type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      mime_type === "application/msword" ||
+      (resume_filename && /\.docx?$/i.test(resume_filename))
+    );
+
+    if (file_base64 && isDocx) {
+      // Extract text from DOCX and send as plain text
+      console.log("Extracting text from DOCX file...");
+      const extractedText = await extractDocxText(file_base64);
+      if (!extractedText || extractedText.length < 20) {
+        throw new Error("Could not extract meaningful text from DOCX file");
+      }
+      userContent = `Parse this resume and extract structured data:\n\n${extractedText}`;
+    } else if (file_base64 && isImage) {
+      // Use multimodal for PDFs and images
       userContent = [
         {
           type: "text",
@@ -33,8 +81,10 @@ serve(async (req) => {
           }
         }
       ];
-    } else {
+    } else if (resume_text) {
       userContent = `Parse this resume and extract structured data:\n\n${resume_text}`;
+    } else {
+      throw new Error("Unsupported file type. Please upload a PDF or DOCX file.");
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -111,9 +161,11 @@ serve(async (req) => {
 
     if (!response.ok) {
       const status = response.status;
+      const body = await response.text();
+      console.error("AI gateway response:", status, body);
       if (status === 429) return new Response(JSON.stringify({ error: "Rate limited, please try again later." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (status === 402) return new Response(JSON.stringify({ error: "Credits exhausted. Please add funds." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      throw new Error(`AI gateway error: ${status}`);
+      throw new Error(`AI gateway error: ${status} - ${body}`);
     }
 
     const aiResult = await response.json();
