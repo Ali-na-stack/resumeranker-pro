@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Star, Eye, EyeOff, Sun, Moon } from "lucide-react";
+import { LayoutDashboard, Users, Star, Eye, EyeOff, Sun, Moon, Sparkles } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
@@ -43,9 +43,21 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
         <SidebarGroup>
           <SidebarGroupLabel>
             {!collapsed && (
-              <span className="font-display text-xs font-bold tracking-wider uppercase text-sidebar-primary">
-                CV Ranker
-              </span>
+              <div className="flex items-center gap-2">
+                <div className="rounded-md bg-primary p-1">
+                  <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
+                <span className="font-display text-xs font-bold tracking-wider uppercase text-sidebar-primary">
+                  CV Ranker
+                </span>
+              </div>
+            )}
+            {collapsed && (
+              <div className="flex justify-center">
+                <div className="rounded-md bg-primary p-1">
+                  <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
+              </div>
             )}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -56,8 +68,8 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                      className="hover:bg-sidebar-accent/50 transition-colors"
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
