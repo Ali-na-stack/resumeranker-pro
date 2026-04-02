@@ -82,7 +82,8 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
   };
 
   const displayName = biasReduction ? `Candidate #${candidate.id.slice(0, 6)}` : candidate.name || "Unknown";
-  const MAX_SKILLS = 3;
+  const MAX_SKILLS = index % 3 === 0 ? 4 : 3;
+  const animDelay = index * 80 + (index % 3) * 15;
 
   return (
     <>
