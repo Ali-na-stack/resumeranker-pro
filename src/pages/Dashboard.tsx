@@ -115,6 +115,21 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
     }
   };
 
+  const handleDeleteJob = async () => {
+    if (!selectedJob) return;
+    setDeleting(true);
+    try {
+      await deleteJobDescription(selectedJob);
+      toast.success("Job description deleted");
+      setSelectedJob("");
+      setCandidates([]);
+      await loadJobs();
+    } catch {
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const currentJobTitle = jobs.find((j) => j.id === selectedJob)?.title;
 
   return (
