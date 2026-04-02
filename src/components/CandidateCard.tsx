@@ -24,6 +24,7 @@ interface CandidateCardProps {
   candidate: CandidateWithScore;
   biasReduction: boolean;
   onStatusChange: () => void;
+  index?: number;
 }
 
 function getScoreColor(score: number) {
