@@ -39,23 +39,12 @@ function ResumeButton({ resumeUrl, filename }: { resumeUrl: string; filename?: s
   const handleClick = async () => {
     setLoading(true);
     try {
-      const { blobUrl, contentType } = await downloadResumeAsBlob(resumeUrl);
-      if (contentType.includes("pdf")) {
-        const win = window.open(blobUrl, "_blank");
-        if (!win) {
-          const a = document.createElement("a");
-          a.href = blobUrl;
-          a.download = filename || "resume.pdf";
-          a.click();
-        }
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
-      } else {
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = filename || "resume";
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-      }
+      const { blobUrl } = await downloadResumeAsBlob(resumeUrl);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename || "resume";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
     } catch {} finally {
       setLoading(false);
     }
