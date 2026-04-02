@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Upload, FileText, Loader2, X, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Upload, FileText, X, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { uploadResumeFile, parseResume, checkDuplicateCandidate } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -19,14 +19,14 @@ interface FileEntry {
   error?: string;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-const statusConfig: Record<FileStatus, { icon: React.ElementType; label: string; className: string }> = {
-  pending: { icon: Clock, label: "Pending", className: "text-muted-foreground" },
-  uploading: { icon: Loader2, label: "Uploading...", className: "text-primary animate-spin" },
-  parsing: { icon: Loader2, label: "AI Parsing...", className: "text-primary animate-spin" },
-  done: { icon: CheckCircle2, label: "Done", className: "text-success" },
-  error: { icon: AlertCircle, label: "Failed", className: "text-destructive" },
+const statusConfig: Record<FileStatus, { label: string; stepLabel?: string }> = {
+  pending: { label: "Pending" },
+  uploading: { label: "Uploading", stepLabel: "Step 1/2 — Uploading" },
+  parsing: { label: "AI Parsing", stepLabel: "Step 2/2 — AI Parsing" },
+  done: { label: "Done" },
+  error: { label: "Failed" },
 };
 
 export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploadProps) {
@@ -95,7 +95,6 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
     for (let i = 0; i < entries.length; i++) {
       if (entries[i].status !== "pending" && entries[i].status !== "error") continue;
       try {
-        // Check for duplicate candidate by filename
         const isDuplicate = await checkDuplicateCandidate(jobDescriptionId, entries[i].file.name);
         if (isDuplicate) {
           updateStatus(i, "error", "Duplicate: a candidate with this resume already exists");
@@ -126,6 +125,8 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
   const doneCount = entries.filter((e) => e.status === "done").length;
   const totalCount = entries.length;
   const overallProgress = totalCount > 0 ? (doneCount / totalCount) * 100 : 0;
+
+  const isActive = (s: FileStatus) => s === "uploading" || s === "parsing";
 
   return (
     <Card>
@@ -173,41 +174,76 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
                   <span>Overall progress</span>
                   <span>{doneCount}/{totalCount}</span>
                 </div>
-                <Progress value={overallProgress} className="h-2" />
+                <Progress value={overallProgress} className="h-2" glowing />
               </div>
             )}
             {entries.map((entry, i) => {
               const cfg = statusConfig[entry.status];
-              const StatusIcon = cfg.icon;
+              const active = isActive(entry.status);
               return (
                 <div
                   key={i}
-                  className={`flex items-center gap-2 p-2 rounded-md ${
+                  className={`relative flex items-center gap-2 p-2 rounded-md transition-all duration-300 overflow-hidden ${
                     entry.status === "done"
-                      ? "bg-success/5"
+                      ? "bg-[hsl(var(--success)/0.06)]"
                       : entry.status === "error"
-                      ? "bg-destructive/5"
+                      ? "bg-[hsl(var(--destructive)/0.06)] animate-shake"
+                      : active
+                      ? "bg-[hsl(var(--primary)/0.04)] border-l-2 border-l-primary"
                       : "bg-muted"
                   }`}
                 >
-                  <FileText className="h-4 w-4 text-primary shrink-0" />
-                  <div className="flex-1 min-w-0">
+                  {active && (
+                    <div className="absolute inset-0 animate-shimmer pointer-events-none" />
+                  )}
+
+                  <FileText className={`h-4 w-4 shrink-0 ${active ? "text-primary animate-pulse" : "text-primary"}`} />
+
+                  <div className="flex-1 min-w-0 relative z-10">
                     <span className="text-sm truncate block">{entry.file.name}</span>
                     {entry.error && (
                       <span className="text-[10px] text-destructive">{entry.error}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+
+                  <div className="flex items-center gap-1.5 shrink-0 relative z-10">
                     <span className="text-xs text-muted-foreground">
                       {(entry.file.size / 1024).toFixed(0)}KB
                     </span>
-                    <StatusIcon className={`h-3.5 w-3.5 ${cfg.className}`} />
-                    <span className={`text-[10px] ${cfg.className}`}>{cfg.label}</span>
+
+                    {entry.status === "done" && (
+                      <CheckCircle2 className="h-4 w-4 text-[hsl(var(--success))] animate-check-pop" />
+                    )}
+                    {entry.status === "error" && (
+                      <AlertCircle className="h-4 w-4 text-destructive" />
+                    )}
+                    {entry.status === "pending" && (
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                    {active && (
+                      <div className="flex items-center gap-1">
+                        <div className="flex gap-0.5">
+                          <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
+                          <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
+                          <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
+                        </div>
+                      </div>
+                    )}
+
+                    <span className={`text-[10px] font-medium ${
+                      entry.status === "done" ? "text-[hsl(var(--success))]"
+                      : entry.status === "error" ? "text-destructive"
+                      : active ? "text-primary"
+                      : "text-muted-foreground"
+                    }`}>
+                      {active ? cfg.stepLabel : cfg.label}
+                    </span>
                   </div>
+
                   {!uploading && (
                     <button
                       onClick={() => removeFile(i)}
-                      className="text-muted-foreground hover:text-destructive shrink-0"
+                      className="text-muted-foreground hover:text-destructive shrink-0 relative z-10"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -224,10 +260,14 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
           className="w-full"
         >
           {uploading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Processing resumes...
-            </>
+            <span className="flex items-center gap-2">
+              Processing
+              <span className="flex gap-0.5">
+                <span className="w-1 h-1 rounded-full bg-primary-foreground animate-bounce [animation-delay:0ms]" />
+                <span className="w-1 h-1 rounded-full bg-primary-foreground animate-bounce [animation-delay:150ms]" />
+                <span className="w-1 h-1 rounded-full bg-primary-foreground animate-bounce [animation-delay:300ms]" />
+              </span>
+            </span>
           ) : (
             `Upload & Parse ${pendingCount} Resume${pendingCount !== 1 ? "s" : ""}`
           )}
