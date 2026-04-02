@@ -117,8 +117,8 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
           {candidate.score?.matched_skills && candidate.score.matched_skills.length > 0 && (
             <div className="mb-3">
               <div className="flex flex-wrap gap-1">
-                {candidate.score.matched_skills.slice(0, MAX_SKILLS).map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-[10px] px-1.5 py-0 max-w-[100px] truncate">
+                {candidate.score.matched_skills.slice(0, MAX_SKILLS).map((skill, si) => (
+                  <Badge key={skill} variant="secondary" className={`text-[10px] px-1.5 py-0 max-w-[120px] truncate ${si === 0 ? "bg-primary/15 text-primary" : ""}`}>
                     {skill}
                   </Badge>
                 ))}
