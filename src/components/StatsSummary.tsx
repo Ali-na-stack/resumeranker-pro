@@ -35,10 +35,10 @@ export function StatsSummary({ candidates }: StatsSummaryProps) {
       : 0;
 
   const stats = [
-    { label: "Total", value: total, icon: Users, color: "text-primary", gradient: "from-[hsl(var(--primary)/0.08)] to-[hsl(var(--primary)/0.02)]" },
-    { label: "Shortlisted", value: shortlisted, icon: Star, color: "text-success", gradient: "from-[hsl(var(--success)/0.08)] to-[hsl(var(--success)/0.02)]" },
-    { label: "Rejected", value: rejected, icon: XCircle, color: "text-destructive", gradient: "from-[hsl(var(--destructive)/0.08)] to-[hsl(var(--destructive)/0.02)]" },
-    { label: "Avg Score", value: avgScore, icon: TrendingUp, color: "text-accent", gradient: "from-[hsl(var(--accent)/0.08)] to-[hsl(var(--accent)/0.02)]", suffix: "%" },
+    { label: "Total Candidates", value: total, icon: Users, color: "text-primary", iconBg: "bg-primary/10", gradient: "from-[hsl(var(--primary)/0.08)] to-[hsl(var(--primary)/0.02)]", featured: true },
+    { label: "Shortlisted", value: shortlisted, icon: Star, color: "text-success", iconBg: "bg-success/10", gradient: "from-[hsl(var(--success)/0.08)] to-[hsl(var(--success)/0.02)]" },
+    { label: "Rejected", value: rejected, icon: XCircle, color: "text-destructive", iconBg: "bg-destructive/10", gradient: "from-[hsl(var(--destructive)/0.08)] to-[hsl(var(--destructive)/0.02)]" },
+    { label: "Avg Score", value: avgScore, icon: TrendingUp, color: "text-accent", iconBg: "bg-accent/10", gradient: "from-[hsl(var(--accent)/0.08)] to-[hsl(var(--accent)/0.02)]", suffix: "%" },
   ];
 
   return (
@@ -46,14 +46,14 @@ export function StatsSummary({ candidates }: StatsSummaryProps) {
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className={`flex items-center gap-3 rounded-lg border bg-gradient-to-br ${stat.gradient} p-4 hover-lift`}
+          className={`flex items-center gap-3 rounded-lg border bg-gradient-to-br ${stat.gradient} p-4 hover-lift ${stat.featured ? "ring-1 ring-primary/10" : ""}`}
         >
-          <div className={`rounded-lg bg-card p-2.5 shadow-sm ${stat.color}`}>
+          <div className={`rounded-full ${stat.iconBg} p-2.5 ${stat.color}`}>
             <stat.icon className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
-            <p className="text-xl font-display font-bold">
+            <p className="text-[11px] text-muted-foreground font-medium leading-tight">{stat.label}</p>
+            <p className={`text-xl font-display font-bold ${stat.featured ? "text-2xl" : ""}`}>
               <AnimatedNumber value={stat.value} suffix={stat.suffix} />
             </p>
           </div>

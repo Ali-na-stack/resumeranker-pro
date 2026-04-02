@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { ScoreRing } from "@/components/ScoreRing";
 import { supabase } from "@/integrations/supabase/client";
 import { updateCandidateStatus, downloadResumeAsBlob } from "@/lib/api";
 import type { CandidateWithScore } from "@/lib/api";
@@ -167,18 +169,20 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
               <CardHeader>
                 <CardTitle className="font-display text-base">Match Score</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <div className="text-5xl font-display font-bold text-primary">
-                    {Math.round(s?.overall_score || 0)}%
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">Overall Match</p>
+              <CardContent className="space-y-5">
+                <div className="flex justify-center">
+                  <ScoreRing score={s?.overall_score || 0} size={100} strokeWidth={6} />
                 </div>
-                <div className="space-y-3">
+                <p className="text-center text-sm text-muted-foreground">Overall Match</p>
+                <div className="space-y-1">
                   <ScoreBar label="Skills" score={s?.skills_score || 0} icon={<Briefcase className="h-3 w-3" />} />
+                  <Separator className="my-2 opacity-50" />
                   <ScoreBar label="Experience" score={s?.experience_score || 0} icon={<User className="h-3 w-3" />} />
+                  <Separator className="my-2 opacity-50" />
                   <ScoreBar label="Education" score={s?.education_score || 0} icon={<GraduationCap className="h-3 w-3" />} />
+                  <Separator className="my-2 opacity-50" />
                   <ScoreBar label="Projects" score={s?.projects_score || 0} icon={<FolderOpen className="h-3 w-3" />} />
+                  <Separator className="my-2 opacity-50" />
                   <ScoreBar label="Certifications" score={s?.certifications_score || 0} icon={<Award className="h-3 w-3" />} />
                 </div>
               </CardContent>
@@ -231,9 +235,9 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
           {/* Details */}
           <div className="lg:col-span-2 space-y-4">
             {s?.explanation && (
-              <Card>
+              <Card className="border-l-[3px] border-l-[hsl(var(--primary))] bg-primary/[0.02]">
                 <CardHeader>
-                  <CardTitle className="font-display text-base">AI Analysis</CardTitle>
+                  <CardTitle className="font-display text-sm text-muted-foreground uppercase tracking-wider">AI Analysis</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm leading-relaxed">{s.explanation}</p>
@@ -244,7 +248,7 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-display text-base text-success">Matched Skills</CardTitle>
+                  <CardTitle className="font-display text-xs uppercase tracking-wider text-success/80">Matched Skills</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-1.5">
@@ -260,7 +264,7 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-display text-base text-destructive">Missing Skills</CardTitle>
+                  <CardTitle className="font-display text-xs uppercase tracking-wider text-destructive/80">Missing Skills</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-1.5">

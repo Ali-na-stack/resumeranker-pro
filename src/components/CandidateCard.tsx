@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ScoreRing } from "@/components/ScoreRing";
 import { Star, X, Bookmark, ArrowRight, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -20,32 +20,11 @@ import { updateCandidateStatus, deleteCandidate } from "@/lib/api";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-interface CandidateCardProps {
-  candidate: CandidateWithScore;
-  biasReduction: boolean;
-  onStatusChange: () => void;
-  index?: number;
-}
-
-function getScoreColor(score: number) {
-  if (score >= 80) return "text-success";
-  if (score >= 60) return "text-primary";
-  if (score >= 40) return "text-warning";
-  return "text-destructive";
-}
-
-function getScoreBg(score: number) {
-  if (score >= 80) return "bg-success/10 border-success/30 shadow-[0_0_12px_hsl(var(--success)/0.2)]";
-  if (score >= 60) return "bg-primary/10 border-primary/30 shadow-[0_0_12px_hsl(var(--primary)/0.2)]";
-  if (score >= 40) return "bg-warning/10 border-warning/30 shadow-[0_0_12px_hsl(var(--warning)/0.2)]";
-  return "bg-destructive/10 border-destructive/30 shadow-[0_0_12px_hsl(var(--destructive)/0.2)]";
-}
-
-function getScoreAccent(score: number) {
-  if (score >= 80) return "border-t-success";
-  if (score >= 60) return "border-t-primary";
-  if (score >= 40) return "border-t-warning";
-  return "border-t-destructive";
+function getLeftBorder(score: number) {
+  if (score >= 80) return "border-l-[3px] border-l-[hsl(var(--success))]";
+  if (score >= 60) return "border-l-[3px] border-l-[hsl(var(--primary))]";
+  if (score >= 40) return "border-l-[3px] border-l-[hsl(var(--warning))]";
+  return "border-l-[3px] border-l-[hsl(var(--destructive))]";
 }
 
 function getInitials(name: string | null, id: string) {
@@ -103,11 +82,12 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
   };
 
   const displayName = biasReduction ? `Candidate #${candidate.id.slice(0, 6)}` : candidate.name || "Unknown";
+  const MAX_SKILLS = 3;
 
   return (
     <>
       <Card
-        className={`hover-lift hover:shadow-xl cursor-pointer group relative border-t-2 ${getScoreAccent(score)} animate-fade-in`}
+        className={`hover-lift hover:shadow-xl cursor-pointer group relative ${getLeftBorder(score)} animate-fade-in`}
         style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
         onClick={() => navigate(`/candidate/${candidate.id}?job=${candidate.job_description_id}`)}
       >
@@ -115,91 +95,59 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
           <ArrowRight className="h-4 w-4 text-muted-foreground" />
         </div>
         <CardContent className="p-5">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <Avatar className="h-10 w-10 shrink-0">
-                <AvatarFallback className={`text-xs font-bold ${getAvatarColor(candidate.name)}`}>
-                  {getInitials(biasReduction ? null : candidate.name, candidate.id)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <h3 className="font-display font-semibold text-sm truncate">{displayName}</h3>
-                {!biasReduction && candidate.email && (
-                  <p className="text-xs text-muted-foreground truncate">{candidate.email}</p>
+          <div className="flex items-start gap-3 mb-4">
+            <Avatar className="h-10 w-10 shrink-0">
+              <AvatarFallback className={`text-xs font-bold ${getAvatarColor(candidate.name)}`}>
+                {getInitials(biasReduction ? null : candidate.name, candidate.id)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-display font-bold text-base truncate leading-tight">{displayName}</h3>
+              {!biasReduction && candidate.email && (
+                <p className="text-[11px] text-muted-foreground/70 truncate mt-0.5">{candidate.email}</p>
+              )}
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {candidate.experience_years || 0} yrs experience
+              </p>
+            </div>
+            <ScoreRing score={score} />
+          </div>
+
+          {candidate.score?.matched_skills && candidate.score.matched_skills.length > 0 && (
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-1">
+                {candidate.score.matched_skills.slice(0, MAX_SKILLS).map((skill) => (
+                  <Badge key={skill} variant="secondary" className="text-[10px] px-1.5 py-0 max-w-[100px] truncate">
+                    {skill}
+                  </Badge>
+                ))}
+                {candidate.score.matched_skills.length > MAX_SKILLS && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
+                    +{candidate.score.matched_skills.length - MAX_SKILLS}
+                  </Badge>
                 )}
               </div>
             </div>
-            <div
-              className={`flex items-center justify-center rounded-full border w-14 h-14 shrink-0 ${getScoreBg(score)}`}
-            >
-              <span className={`text-lg font-display font-bold ${getScoreColor(score)}`}>
-                {Math.round(score)}
-              </span>
-            </div>
-          </div>
+          )}
 
-          <div className="mb-3">
-            <div className="flex items-center justify-between text-xs mb-1.5">
-              <span className="text-muted-foreground">Match Score</span>
-              <span className={`font-semibold ${getScoreColor(score)}`}>{Math.round(score)}%</span>
-            </div>
-            <Progress value={score} className="h-2.5" />
-          </div>
-
-          <div className="space-y-2 mb-3">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Experience</p>
-              <p className="text-xs font-medium">{candidate.experience_years || 0} years</p>
-            </div>
-
-            {candidate.score?.matched_skills && candidate.score.matched_skills.length > 0 && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Matched Skills</p>
-                <div className="flex flex-wrap gap-1">
-                  {candidate.score.matched_skills.slice(0, 5).map((skill) => (
-                    <Badge key={skill} variant="secondary" className="text-[10px] px-1.5 py-0">
-                      {skill}
-                    </Badge>
-                  ))}
-                  {candidate.score.matched_skills.length > 5 && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                      +{candidate.score.matched_skills.length - 5}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {candidate.score?.missing_skills && candidate.score.missing_skills.length > 0 && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Missing Skills</p>
-                <div className="flex flex-wrap gap-1">
-                  {candidate.score.missing_skills.slice(0, 3).map((skill) => (
-                    <Badge key={skill} variant="destructive" className="text-[10px] px-1.5 py-0 opacity-70">
-                      {skill}
-                    </Badge>
-                  ))}
-                  {candidate.score.missing_skills.length > 3 && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                      +{candidate.score.missing_skills.length - 3}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {candidate.quality_score !== null && candidate.quality_score > 0 && (
+          {candidate.score?.missing_skills && candidate.score.missing_skills.length > 0 && (
             <div className="mb-3">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-muted-foreground">Resume Quality</span>
-                <span className="font-medium">{Math.round(candidate.quality_score)}%</span>
+              <div className="flex flex-wrap gap-1">
+                {candidate.score.missing_skills.slice(0, 2).map((skill) => (
+                  <Badge key={skill} variant="destructive" className="text-[10px] px-1.5 py-0 opacity-60 max-w-[100px] truncate">
+                    {skill}
+                  </Badge>
+                ))}
+                {candidate.score.missing_skills.length > 2 && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
+                    +{candidate.score.missing_skills.length - 2}
+                  </Badge>
+                )}
               </div>
-              <Progress value={candidate.quality_score} className="h-1.5" />
             </div>
           )}
 
-          <div className="flex gap-2 pt-3 border-t" onClick={(e) => e.stopPropagation()}>
+          <div className="flex gap-2 pt-3 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
             <Button
               size="sm"
               variant={candidate.status === "shortlisted" ? "default" : "outline"}
