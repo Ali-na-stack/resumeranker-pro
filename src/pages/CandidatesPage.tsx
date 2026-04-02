@@ -62,68 +62,59 @@ export default function CandidatesPage({ biasReduction, filterStatus }: Candidat
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      <header className="min-h-[3.5rem] flex flex-wrap items-center border-b bg-card px-3 sm:px-4 gap-2 sm:gap-4 py-2">
+      <header className="h-14 flex items-center border-b border-border/60 px-4 gap-3 bg-background/80 backdrop-blur-sm">
         <SidebarTrigger />
-        <h1 className="font-display font-bold text-base sm:text-lg">{title}</h1>
+        <h1 className="font-display font-semibold text-base tracking-tight">{title}</h1>
         <Select value={selectedJob} onValueChange={setSelectedJob}>
-          <SelectTrigger className="w-full sm:w-[250px] sm:ml-auto">
+          <SelectTrigger className="w-[220px] h-9 text-sm ml-auto">
             <SelectValue placeholder="Select a job" />
           </SelectTrigger>
           <SelectContent>
             {jobs.map((job) => (
-              <SelectItem key={job.id} value={job.id}>
-                {job.title}
-              </SelectItem>
+              <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </header>
 
-      <main className="flex-1 p-4 sm:p-6 overflow-auto">
-        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 mb-6 sm:items-end">
-          <div className="w-full sm:flex-1 sm:min-w-[200px]">
+      <main className="flex-1 p-5 sm:p-8 overflow-auto">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:items-end">
+          <div className="flex-1 min-w-[200px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name or skill..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
+                className="pl-9 h-9"
               />
             </div>
           </div>
-          <div className="w-full sm:w-[200px]">
-            <Label className="text-xs text-muted-foreground mb-1 block">
+          <div className="w-full sm:w-[180px]">
+            <Label className="text-[11px] text-muted-foreground mb-1 block">
               Min Score: {minScore}%
             </Label>
-            <Slider
-              value={[minScore]}
-              onValueChange={([v]) => setMinScore(v)}
-              max={100}
-              step={5}
-            />
+            <Slider value={[minScore]} onValueChange={([v]) => setMinScore(v)} max={100} step={5} />
           </div>
-          <div className="w-full sm:w-auto">
-            <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
-              <SelectTrigger className="w-full sm:w-[160px]">
-                <SlidersHorizontal className="h-3 w-3 mr-1" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="score">Sort by Score</SelectItem>
-                <SelectItem value="name">Sort by Name</SelectItem>
-                <SelectItem value="experience">Sort by Experience</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+            <SelectTrigger className="w-full sm:w-[150px] h-9 text-sm">
+              <SlidersHorizontal className="h-3 w-3 mr-1.5" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="score">Sort by Score</SelectItem>
+              <SelectItem value="name">Sort by Name</SelectItem>
+              <SelectItem value="experience">Sort by Experience</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="text-center py-16 text-muted-foreground text-sm">
             No candidates found.
           </div>
         ) : (
@@ -134,9 +125,7 @@ export default function CandidatesPage({ biasReduction, filterStatus }: Candidat
                 candidate={c}
                 biasReduction={biasReduction}
                 index={i}
-                onStatusChange={() =>
-                  fetchCandidatesWithScores(selectedJob).then(setCandidates)
-                }
+                onStatusChange={() => fetchCandidatesWithScores(selectedJob).then(setCandidates)}
               />
             ))}
           </div>
