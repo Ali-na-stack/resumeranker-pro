@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -20,13 +19,6 @@ import { updateCandidateStatus, deleteCandidate } from "@/lib/api";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-function getLeftBorder(score: number) {
-  if (score >= 80) return "border-l-[3px] border-l-[hsl(var(--success))]";
-  if (score >= 60) return "border-l-[3px] border-l-[hsl(var(--primary))]";
-  if (score >= 40) return "border-l-[3px] border-l-[hsl(var(--warning))]";
-  return "border-l-[3px] border-l-[hsl(var(--destructive))]";
-}
-
 function getInitials(name: string | null, id: string) {
   if (!name) return id.slice(0, 2).toUpperCase();
   return name
@@ -39,11 +31,9 @@ function getInitials(name: string | null, id: string) {
 
 function getAvatarColor(name: string | null) {
   const colors = [
-    "bg-primary/15 text-primary",
-    "bg-success/15 text-success",
-    "bg-accent/15 text-accent",
-    "bg-warning/15 text-warning",
-    "bg-destructive/15 text-destructive",
+    "bg-primary/12 text-primary",
+    "bg-[hsl(var(--success))]/12 text-[hsl(var(--success))]",
+    "bg-[hsl(var(--warning))]/12 text-[hsl(var(--warning))]",
   ];
   const hash = (name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   return colors[hash % colors.length];
@@ -82,110 +72,108 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
   };
 
   const displayName = biasReduction ? `Candidate #${candidate.id.slice(0, 6)}` : candidate.name || "Unknown";
-  const MAX_SKILLS = index % 3 === 0 ? 4 : 3;
-  const animDelay = index * 80 + (index % 3) * 15;
+  const animDelay = index * 60;
 
   return (
     <>
-      <Card
-        className={`hover-lift hover:shadow-xl cursor-pointer group relative ${getLeftBorder(score)} animate-fade-in`}
-        style={{ animationDelay: `${animDelay}ms`, animationFillMode: "both" }}
+      <div
+        className="surface-elevated border border-border/50 hover:border-primary/30 transition-all duration-200 cursor-pointer group relative p-5 animate-slide-in-up"
+        style={{ animationDelay: `${animDelay}ms` }}
         onClick={() => navigate(`/candidate/${candidate.id}?job=${candidate.job_description_id}`)}
       >
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <ArrowRight className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <CardContent className="p-5">
-          <div className="flex items-start gap-3 mb-4">
-            <Avatar className="h-10 w-10 shrink-0">
-              <AvatarFallback className={`text-xs font-bold ${getAvatarColor(candidate.name)}`}>
-                {getInitials(biasReduction ? null : candidate.name, candidate.id)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-display font-bold text-base truncate leading-tight">{displayName}</h3>
-              {!biasReduction && candidate.email && (
-                <p className="text-[11px] text-muted-foreground/70 truncate mt-0.5">{candidate.email}</p>
-              )}
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                {candidate.experience_years || 0} yrs experience
-              </p>
-            </div>
-            <ScoreRing score={score} />
+        {/* Header */}
+        <div className="flex items-start gap-3 mb-4">
+          <Avatar className="h-9 w-9 shrink-0">
+            <AvatarFallback className={`text-[11px] font-semibold ${getAvatarColor(candidate.name)}`}>
+              {getInitials(biasReduction ? null : candidate.name, candidate.id)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display font-semibold text-sm truncate leading-snug">{displayName}</h3>
+            {!biasReduction && candidate.email && (
+              <p className="text-[11px] text-muted-foreground truncate mt-0.5">{candidate.email}</p>
+            )}
+            <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+              {candidate.experience_years || 0} yrs experience
+            </p>
           </div>
+          <ScoreRing score={score} />
+        </div>
 
-          {candidate.score?.matched_skills && candidate.score.matched_skills.length > 0 && (
-            <div className="mb-3">
-              <div className="flex flex-wrap gap-1">
-                {candidate.score.matched_skills.slice(0, MAX_SKILLS).map((skill, si) => (
-                  <Badge key={skill} variant="secondary" className={`text-[10px] px-1.5 py-0 max-w-[120px] truncate ${si === 0 ? "bg-primary/15 text-primary" : ""}`}>
-                    {skill}
-                  </Badge>
-                ))}
-                {candidate.score.matched_skills.length > MAX_SKILLS && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
-                    +{candidate.score.matched_skills.length - MAX_SKILLS}
-                  </Badge>
-                )}
-              </div>
+        {/* Matched skills */}
+        {candidate.score?.matched_skills && candidate.score.matched_skills.length > 0 && (
+          <div className="mb-3">
+            <div className="flex flex-wrap gap-1.5">
+              {candidate.score.matched_skills.slice(0, 3).map((skill) => (
+                <Badge key={skill} variant="secondary" className="text-[10px] px-2 py-0.5 font-normal max-w-[120px] truncate">
+                  {skill}
+                </Badge>
+              ))}
+              {candidate.score.matched_skills.length > 3 && (
+                <span className="text-[10px] text-muted-foreground self-center">
+                  +{candidate.score.matched_skills.length - 3}
+                </span>
+              )}
             </div>
-          )}
+          </div>
+        )}
 
-          {candidate.score?.missing_skills && candidate.score.missing_skills.length > 0 && (
-            <div className="mb-3">
-              <div className="flex flex-wrap gap-1">
-                {candidate.score.missing_skills.slice(0, 2).map((skill) => (
-                  <Badge key={skill} variant="destructive" className="text-[10px] px-1.5 py-0 opacity-60 max-w-[100px] truncate">
-                    {skill}
-                  </Badge>
-                ))}
-                {candidate.score.missing_skills.length > 2 && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
-                    +{candidate.score.missing_skills.length - 2}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )}
+        {/* Missing skills as text */}
+        {candidate.score?.missing_skills && candidate.score.missing_skills.length > 0 && (
+          <p className="text-[10px] text-destructive/70 mb-3 truncate">
+            Missing: {candidate.score.missing_skills.slice(0, 2).join(", ")}
+            {candidate.score.missing_skills.length > 2 && ` +${candidate.score.missing_skills.length - 2}`}
+          </p>
+        )}
 
-          <div className="flex gap-2 pt-3 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
+        {/* Actions */}
+        <div className="flex items-center gap-2 pt-3 border-t border-border/40" onClick={(e) => e.stopPropagation()}>
+          <Button
+            size="sm"
+            variant={candidate.status === "shortlisted" ? "default" : "outline"}
+            className="flex-1 h-8 text-xs gap-1.5"
+            onClick={() => handleStatus("shortlisted")}
+          >
+            <Star className="h-3 w-3" />
+            Shortlist
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs gap-1"
+            onClick={() => navigate(`/candidate/${candidate.id}?job=${candidate.job_description_id}`)}
+          >
+            View
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+          <div className="flex items-center gap-0.5 ml-auto">
             <Button
               size="sm"
-              variant={candidate.status === "shortlisted" ? "default" : "outline"}
-              className="flex-1 h-8 text-xs gap-1 hover-glow"
-              onClick={() => handleStatus("shortlisted")}
-            >
-              <Star className="h-3 w-3" />
-              Shortlist
-            </Button>
-            <Button
-              size="sm"
-              variant={candidate.status === "rejected" ? "destructive" : "outline"}
-              className="flex-1 h-8 text-xs gap-1 hover-underline-accent overflow-visible"
+              variant="ghost"
+              className={`h-7 w-7 p-0 ${candidate.status === "rejected" ? "text-destructive" : "text-muted-foreground"}`}
               onClick={() => handleStatus("rejected")}
             >
-              <X className="h-3 w-3" />
-              Reject
+              <X className="h-3.5 w-3.5" />
             </Button>
             <Button
               size="sm"
-              variant={candidate.status === "saved" ? "secondary" : "outline"}
-              className="h-8 text-xs px-2.5 hover-scale-sm"
+              variant="ghost"
+              className={`h-7 w-7 p-0 ${candidate.status === "saved" ? "text-primary" : "text-muted-foreground"}`}
               onClick={() => handleStatus("saved")}
             >
-              <Bookmark className="h-3 w-3" />
+              <Bookmark className="h-3.5 w-3.5" />
             </Button>
             <Button
               size="sm"
-              variant="outline"
-              className="h-8 text-xs px-2.5 text-destructive hover:bg-destructive/10"
+              variant="ghost"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
               onClick={() => setShowDeleteDialog(true)}
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
