@@ -47,9 +47,14 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
                 <div className="relative rounded-lg bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))] p-1.5 shadow-lg shadow-[hsl(var(--primary)/0.3)]">
                   <span className="text-[10px] font-display font-bold text-primary-foreground leading-none">CR</span>
                 </div>
-                <span className="font-display text-xs font-bold tracking-wider uppercase text-sidebar-foreground">
-                  CV Ranker
-                </span>
+                <div className="flex flex-col">
+                  <span className="font-display text-xs font-bold tracking-wider uppercase text-sidebar-foreground">
+                    CV Ranker
+                  </span>
+                  <span className="text-[9px] text-sidebar-foreground/40 font-medium tracking-wide">
+                    Smart Hiring
+                  </span>
+                </div>
               </div>
             )}
             {collapsed && (
@@ -60,7 +65,14 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
               </div>
             )}
           </SidebarGroupLabel>
-          <SidebarGroupContent className="mt-2">
+          {!collapsed && (
+            <div className="px-3 pt-4 pb-1">
+              <span className="text-[10px] font-medium uppercase tracking-widest text-sidebar-foreground/30">
+                Navigation
+              </span>
+            </div>
+          )}
+          <SidebarGroupContent className="mt-1">
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -69,7 +81,7 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
                       to={item.url}
                       end={item.url === "/"}
                       className="rounded-lg px-3 py-2 hover:bg-sidebar-accent/60 transition-all duration-200"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium shadow-sm"
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium shadow-sm border-l-2 border-l-[hsl(var(--sidebar-primary))]"
                     >
                       <item.icon className="mr-2.5 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -115,9 +127,6 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
                 className="ml-auto scale-75"
               />
             </div>
-          </div>
-          <div className="flex items-center justify-center">
-            <span className="text-[10px] text-sidebar-foreground/40 font-display tracking-wide">v1.0 Pro</span>
           </div>
         </SidebarFooter>
       )}
