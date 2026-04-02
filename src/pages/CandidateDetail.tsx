@@ -169,18 +169,20 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
               <CardHeader>
                 <CardTitle className="font-display text-base">Match Score</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <div className="text-5xl font-display font-bold text-primary">
-                    {Math.round(s?.overall_score || 0)}%
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">Overall Match</p>
+              <CardContent className="space-y-5">
+                <div className="flex justify-center">
+                  <ScoreRing score={s?.overall_score || 0} size={100} strokeWidth={6} />
                 </div>
-                <div className="space-y-3">
+                <p className="text-center text-sm text-muted-foreground">Overall Match</p>
+                <div className="space-y-1">
                   <ScoreBar label="Skills" score={s?.skills_score || 0} icon={<Briefcase className="h-3 w-3" />} />
+                  <Separator className="my-2 opacity-50" />
                   <ScoreBar label="Experience" score={s?.experience_score || 0} icon={<User className="h-3 w-3" />} />
+                  <Separator className="my-2 opacity-50" />
                   <ScoreBar label="Education" score={s?.education_score || 0} icon={<GraduationCap className="h-3 w-3" />} />
+                  <Separator className="my-2 opacity-50" />
                   <ScoreBar label="Projects" score={s?.projects_score || 0} icon={<FolderOpen className="h-3 w-3" />} />
+                  <Separator className="my-2 opacity-50" />
                   <ScoreBar label="Certifications" score={s?.certifications_score || 0} icon={<Award className="h-3 w-3" />} />
                 </div>
               </CardContent>
