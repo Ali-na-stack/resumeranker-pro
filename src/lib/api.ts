@@ -58,6 +58,11 @@ export async function parseResume(
 ) {
   // Convert file to base64 for server-side parsing
   const base64 = await fileToBase64(file);
+  
+  if (!base64) {
+    toast.error("Failed to read file contents");
+    throw new Error("Failed to convert file to base64");
+  }
 
   const { data, error } = await supabase.functions.invoke("parse-resume", {
     body: {
@@ -69,8 +74,10 @@ export async function parseResume(
     },
   });
   if (error) {
-    toast.error("Failed to parse resume");
-    throw error;
+    // Try to extract detailed error from response
+    const errMsg = data?.error || error?.message || "Failed to parse resume";
+    toast.error(errMsg);
+    throw new Error(errMsg);
   }
   return data;
 }
