@@ -1,30 +1,29 @@
 
 
-## Switch Resume Parsing to Claude API
+## Add Delete Candidate Feature
 
 ### Overview
-Your `ANTHROPIC_API_KEY` secret is now stored. The plan is to update the `parse-resume` edge function to call Claude's Messages API instead of the Lovable AI gateway.
+Add the ability to delete candidates from the list. A delete button will appear on each candidate card, with a confirmation dialog to prevent accidental deletions.
 
-### Changes — `supabase/functions/parse-resume/index.ts`
+### Changes
 
-**Auth & endpoint:**
-- Read `ANTHROPIC_API_KEY` instead of `LOVABLE_API_KEY`
-- Call `https://api.anthropic.com/v1/messages` with `x-api-key` and `anthropic-version: 2023-06-01` headers
-- Use model `claude-sonnet-4-20250514`
+**1. `src/lib/api.ts` — Add `deleteCandidate` function**
+- Delete from `candidate_scores` where `candidate_id` matches
+- Delete from `candidate_statuses` where `candidate_id` matches
+- Delete from `candidates` where `id` matches
+- Note: `candidate_scores` currently lacks a DELETE RLS policy, so a migration is needed
 
-**Request format adaptation (Claude's API differs from OpenAI-style):**
-- Move system prompt to top-level `system` field
-- For PDFs: use Claude's native `document` content block (`{ type: "document", source: { type: "base64", media_type: "application/pdf", data: "..." } }`)
-- For DOCX: keep existing text extraction, send as text content
-- For images: use Claude's `image` content block
-- Use Claude's `tools` format with `tool_choice: { type: "tool", name: "extract_resume_data" }`
+**2. Database migration — Add missing DELETE policies**
+- Add DELETE policy on `candidate_scores` table (currently missing)
+- `candidate_statuses` also lacks DELETE — add there too
 
-**Response parsing:**
-- Extract from `content[].type === "tool_use"` block instead of `choices[0].message.tool_calls[0]`
-- Parse `input` field instead of `function.arguments`
+**3. `src/components/CandidateCard.tsx` — Add delete button**
+- Add a `Trash2` icon button in the action bar (next to Shortlist/Reject/Save)
+- Wrap in an `AlertDialog` confirmation ("Are you sure? This cannot be undone.")
+- On confirm, call `deleteCandidate` then trigger `onStatusChange` to refresh the list
 
-**Everything else stays the same** — DOCX extraction logic, database insert, error handling structure, CORS headers, and the frontend code.
-
-### No other files change
-The frontend calls `supabase.functions.invoke("parse-resume", ...)` with the same payload — no client-side changes needed.
+### Files to Modify
+- `src/lib/api.ts` — New `deleteCandidate` function
+- `src/components/CandidateCard.tsx` — Delete button + confirmation dialog
+- Database migration — DELETE RLS policies on `candidate_scores` and `candidate_statuses`
 
