@@ -58,6 +58,13 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
         }
         return true;
       });
+      // Record stagger index for animation delay
+      const now = Date.now();
+      setAddedAt((prev) => {
+        const next = { ...prev };
+        unique.forEach((v, i) => { next[v.file.name] = now + i * 80; });
+        return next;
+      });
       return [...prev, ...unique];
     });
   }, []);
