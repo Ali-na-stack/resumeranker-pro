@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Star, Eye, EyeOff, Sun, Moon } from "lucide-react";
+import { LayoutDashboard, Users, GitCompare, Moon, Sun, Eye, EyeOff } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
@@ -10,18 +10,18 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Candidates", url: "/candidates", icon: Users },
-  { title: "Shortlisted", url: "/shortlisted", icon: Star },
+  { title: "Compare", url: "/compare", icon: GitCompare },
 ];
 
 interface AppSidebarProps {
@@ -41,38 +41,24 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {!collapsed && (
-              <div className="flex items-center gap-2.5">
-                <div className="relative rounded-lg bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))] p-1.5 shadow-lg shadow-[hsl(var(--primary)/0.3)]">
-                  <span className="text-[10px] font-display font-bold text-primary-foreground leading-none">CR</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-display text-xs font-bold tracking-wider uppercase text-sidebar-foreground">
-                    CV Ranker
-                  </span>
-                  <span className="text-[9px] text-sidebar-foreground/40 font-medium tracking-wide">
-                    Smart Hiring
-                  </span>
-                </div>
+          {/* Brand */}
+          <div className={`px-4 pt-5 pb-4 ${collapsed ? "flex justify-center" : ""}`}>
+            <div className="flex items-center gap-2.5">
+              <div className="h-7 w-7 rounded-md bg-primary/90 flex items-center justify-center shrink-0">
+                <span className="text-primary-foreground text-[10px] font-bold font-display">CV</span>
               </div>
-            )}
-            {collapsed && (
-              <div className="flex justify-center">
-                <div className="rounded-lg bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))] p-1.5 shadow-lg shadow-[hsl(var(--primary)/0.3)]">
-                  <span className="text-[10px] font-display font-bold text-primary-foreground leading-none">CR</span>
+              {!collapsed && (
+                <div>
+                  <h1 className="text-sm font-display font-semibold text-sidebar-foreground tracking-tight leading-none">CV Ranker</h1>
+                  <p className="text-[10px] text-sidebar-foreground/40 mt-0.5">Smart Hiring</p>
                 </div>
-              </div>
-            )}
-          </SidebarGroupLabel>
-          {!collapsed && (
-            <div className="px-3 pt-4 pb-1">
-              <span className="text-[10px] font-medium uppercase tracking-widest text-sidebar-foreground/30">
-                Navigation
-              </span>
+              )}
             </div>
-          )}
-          <SidebarGroupContent className="mt-1">
+          </div>
+
+          <SidebarSeparator className="opacity-20 mx-3" />
+
+          <SidebarGroupContent className="mt-3 px-2">
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -80,10 +66,10 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="rounded-lg px-3 py-2 hover:bg-sidebar-accent/60 transition-all duration-200"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium shadow-sm border-l-2 border-l-[hsl(var(--sidebar-primary))]"
+                      className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground/65 hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors duration-150"
+                      activeClassName="!bg-sidebar-accent !text-sidebar-foreground font-medium"
                     >
-                      <item.icon className="mr-2.5 h-4 w-4" />
+                      <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -93,41 +79,39 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
       {!collapsed && (
-        <SidebarFooter className="p-4 space-y-3">
-          <div className="rounded-lg bg-sidebar-accent/40 p-3 space-y-3">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-xs text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-4 w-4 mr-2" />
-                ) : (
-                  <Moon className="h-4 w-4 mr-2" />
-                )}
-                {theme === "dark" ? "Light Mode" : "Dark Mode"}
-              </Button>
-            </div>
+        <SidebarFooter className="px-4 pb-5 space-y-3">
+          <SidebarSeparator className="opacity-20" />
+
+          <div className="flex items-center justify-between px-1 py-1">
             <div className="flex items-center gap-2">
               {biasReduction ? (
-                <EyeOff className="h-4 w-4 text-sidebar-foreground/70" />
+                <EyeOff className="h-3.5 w-3.5 text-sidebar-foreground/45" />
               ) : (
-                <Eye className="h-4 w-4 text-sidebar-foreground/70" />
+                <Eye className="h-3.5 w-3.5 text-sidebar-foreground/45" />
               )}
-              <Label htmlFor="bias-mode" className="text-xs text-sidebar-foreground/70 cursor-pointer">
+              <Label htmlFor="bias-mode" className="text-[11px] text-sidebar-foreground/55 cursor-pointer">
                 Bias Reduction
               </Label>
-              <Switch
-                id="bias-mode"
-                checked={biasReduction}
-                onCheckedChange={onBiasReductionChange}
-                className="ml-auto scale-75"
-              />
             </div>
+            <Switch
+              id="bias-mode"
+              checked={biasReduction}
+              onCheckedChange={onBiasReductionChange}
+              className="scale-75 origin-right"
+            />
           </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-sidebar-foreground/55 hover:text-sidebar-foreground h-8 text-xs"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </Button>
         </SidebarFooter>
       )}
     </Sidebar>
