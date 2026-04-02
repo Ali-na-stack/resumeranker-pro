@@ -96,19 +96,22 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
   const processOne = async (i: number): Promise<boolean> => {
     try {
       const entry = entries[i];
-      const isDuplicate = await checkDuplicateCandidate(jobDescriptionId, entry.file.name);
-      if (isDuplicate) {
-        updateStatus(i, "error", "Duplicate: a candidate with this resume already exists");
-        return false;
-      }
       updateStatus(i, "uploading");
       const resumeUrl = await uploadResumeFile(entry.file, jobDescriptionId);
       updateStatus(i, "parsing");
       await parseResume(jobDescriptionId, entry.file, resumeUrl, entry.file.name);
       updateStatus(i, "done");
       return true;
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Processing failed";
+    } catch (err: any) {
+      let msg = "Processing failed";
+      if (err?.message) msg = err.message;
+      // Handle duplicate response from edge function
+      if (err?.context?.body) {
+        try {
+          const body = typeof err.context.body === "string" ? JSON.parse(err.context.body) : err.context.body;
+          if (body?.error) msg = body.error;
+        } catch {}
+      }
       updateStatus(i, "error", msg);
       console.error(`Failed to process ${entries[i].file.name}:`, err);
       return false;
