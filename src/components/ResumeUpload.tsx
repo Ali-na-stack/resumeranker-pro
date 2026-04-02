@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Upload, FileText, X, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Upload, FileText, X, CheckCircle2, AlertCircle, Clock, Loader2 } from "lucide-react";
 import { uploadResumeFile, parseResume } from "@/lib/api";
 import { toast } from "sonner";
 
