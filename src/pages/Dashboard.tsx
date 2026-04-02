@@ -145,18 +145,43 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
           )}
         </div>
         {jobs.length > 0 && (
-          <Select value={selectedJob} onValueChange={setSelectedJob}>
-            <SelectTrigger className="w-full sm:w-[250px] sm:ml-auto">
-              <SelectValue placeholder="Select a job" />
-            </SelectTrigger>
-            <SelectContent>
-              {jobs.map((job) => (
-                <SelectItem key={job.id} value={job.id}>
-                  {job.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
+            <Select value={selectedJob} onValueChange={setSelectedJob}>
+              <SelectTrigger className="w-full sm:w-[250px]">
+                <SelectValue placeholder="Select a job" />
+              </SelectTrigger>
+              <SelectContent>
+                {jobs.map((job) => (
+                  <SelectItem key={job.id} value={job.id}>
+                    {job.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedJob && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive shrink-0" disabled={deleting}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Job Description?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete "{currentJobTitle}" and all associated candidates, scores, and statuses. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteJob} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         )}
       </header>
 

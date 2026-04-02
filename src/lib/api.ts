@@ -200,6 +200,21 @@ export async function deleteCandidate(candidateId: string) {
 }
 
 export async function deleteJobDescription(id: string) {
+  // Get all candidate IDs for this job
+  const { data: candidates } = await supabase
+    .from("candidates")
+    .select("id")
+    .eq("job_description_id", id);
+  const candidateIds = candidates?.map((c) => c.id) || [];
+
+  if (candidateIds.length > 0) {
+    await supabase.from("candidate_scores").delete().in("candidate_id", candidateIds);
+    await supabase.from("candidate_statuses").delete().in("candidate_id", candidateIds);
+  }
+  await supabase.from("candidates").delete().eq("job_description_id", id);
   const { error } = await supabase.from("job_descriptions").delete().eq("id", id);
-  if (error) throw error;
+  if (error) {
+    toast.error("Failed to delete job description");
+    throw error;
+  }
 }
