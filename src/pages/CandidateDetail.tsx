@@ -34,20 +34,11 @@ function ScoreBar({ label, score, icon }: { label: string; score: number; icon: 
 }
 
 function ResumeButton({ resumeUrl }: { resumeUrl: string }) {
-  const [loading, setLoading] = useState(false);
-  const handleClick = async () => {
-    setLoading(true);
-    try {
-      const signedUrl = await getResumeSignedUrl(resumeUrl);
-      window.open(signedUrl, "_blank");
-    } catch {
-      // toast already shown in getResumeSignedUrl
-    } finally {
-      setLoading(false);
-    }
+  const handleClick = () => {
+    window.open(resumeUrl, "_blank", "noopener,noreferrer");
   };
   return (
-    <Button variant="outline" className="w-full" onClick={handleClick} disabled={loading}>
+    <Button variant="outline" className="w-full" onClick={handleClick}>
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
       {loading ? "Generating link…" : "View Original Resume"}
     </Button>
