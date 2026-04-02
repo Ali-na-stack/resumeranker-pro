@@ -139,14 +139,16 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
         <div
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+          className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 group/drop ${
             uploading
               ? "border-muted cursor-not-allowed opacity-50"
-              : "border-border hover:border-primary/50 cursor-pointer"
+              : "border-border hover:border-primary/50 hover:bg-primary/[0.02] cursor-pointer"
           }`}
           onClick={() => !uploading && document.getElementById("file-input")?.click()}
         >
-          <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+          <div className="mx-auto mb-3 w-14 h-14 rounded-xl bg-gradient-to-br from-[hsl(var(--primary)/0.12)] to-[hsl(var(--accent)/0.08)] flex items-center justify-center shadow-sm group-hover/drop:shadow-md transition-shadow duration-300">
+            <Upload className="h-6 w-6 text-primary" />
+          </div>
           <p className="text-sm font-medium text-foreground">
             Drop resumes here or click to browse
           </p>

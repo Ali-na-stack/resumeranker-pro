@@ -303,6 +303,7 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
                           candidate={c}
                           biasReduction={biasReduction}
                           onStatusChange={loadCandidates}
+                          index={i}
                         />
                       </div>
                     ))}
