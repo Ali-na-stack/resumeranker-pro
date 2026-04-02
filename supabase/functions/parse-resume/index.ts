@@ -143,6 +143,38 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Duplicate check by name or email
+    const candidateName = parsed.name || "";
+    const candidateEmail = parsed.email || "";
+    if (candidateName && candidateName !== "Unknown") {
+      const { data: nameMatch } = await supabase
+        .from("candidates")
+        .select("id, name")
+        .eq("job_description_id", job_description_id)
+        .ilike("name", candidateName)
+        .limit(1);
+      if (nameMatch && nameMatch.length > 0) {
+        return new Response(JSON.stringify({ error: `Duplicate: candidate "${candidateName}" already exists for this job` }), {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+    if (candidateEmail) {
+      const { data: emailMatch } = await supabase
+        .from("candidates")
+        .select("id, email")
+        .eq("job_description_id", job_description_id)
+        .ilike("email", candidateEmail)
+        .limit(1);
+      if (emailMatch && emailMatch.length > 0) {
+        return new Response(JSON.stringify({ error: `Duplicate: a candidate with email "${candidateEmail}" already exists for this job` }), {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const { data, error } = await supabase
       .from("candidates")
       .insert({
