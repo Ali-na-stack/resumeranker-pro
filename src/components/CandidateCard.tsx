@@ -89,7 +89,7 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
     <>
       <Card
         className={`hover-lift hover:shadow-xl cursor-pointer group relative ${getLeftBorder(score)} animate-fade-in`}
-        style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
+        style={{ animationDelay: `${animDelay}ms`, animationFillMode: "both" }}
         onClick={() => navigate(`/candidate/${candidate.id}?job=${candidate.job_description_id}`)}
       >
         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
