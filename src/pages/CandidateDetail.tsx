@@ -224,7 +224,7 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
             </div>
 
             {candidate.resume_url && (
-              <ResumeButton resumeUrl={candidate.resume_url} />
+              <ResumeButton resumeUrl={candidate.resume_url} filename={candidate.resume_filename} />
             )}
           </div>
 
