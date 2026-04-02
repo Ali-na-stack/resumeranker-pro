@@ -29,9 +29,12 @@ const statusConfig: Record<FileStatus, { label: string; stepLabel?: string }> = 
   error: { label: "Failed" },
 };
 
+const CONCURRENCY = 3;
+
 export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploadProps) {
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [addedAt, setAddedAt] = useState<Record<string, number>>({});
 
   const addFiles = useCallback((newFiles: File[]) => {
     const valid: FileEntry[] = [];
@@ -54,6 +57,13 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
           return false;
         }
         return true;
+      });
+      // Record stagger index for animation delay
+      const now = Date.now();
+      setAddedAt((prev) => {
+        const next = { ...prev };
+        unique.forEach((v, i) => { next[v.file.name] = now + i * 80; });
+        return next;
       });
       return [...prev, ...unique];
     });
@@ -83,40 +93,47 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
     setEntries((prev) => prev.map((e, i) => (i === index ? { ...e, status, error } : e)));
   };
 
+  const processOne = async (i: number): Promise<boolean> => {
+    try {
+      const entry = entries[i];
+      const isDuplicate = await checkDuplicateCandidate(jobDescriptionId, entry.file.name);
+      if (isDuplicate) {
+        updateStatus(i, "error", "Duplicate: a candidate with this resume already exists");
+        return false;
+      }
+      updateStatus(i, "uploading");
+      const resumeUrl = await uploadResumeFile(entry.file, jobDescriptionId);
+      updateStatus(i, "parsing");
+      await parseResume(jobDescriptionId, entry.file, resumeUrl, entry.file.name);
+      updateStatus(i, "done");
+      return true;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Processing failed";
+      updateStatus(i, "error", msg);
+      console.error(`Failed to process ${entries[i].file.name}:`, err);
+      return false;
+    }
+  };
+
   const handleUpload = async () => {
-    const pendingEntries = entries.filter((e) => e.status === "pending" || e.status === "error");
-    if (pendingEntries.length === 0) {
+    const pendingIndices = entries
+      .map((e, i) => (e.status === "pending" || e.status === "error" ? i : -1))
+      .filter((i) => i >= 0);
+    if (pendingIndices.length === 0) {
       toast.error("No files to process");
       return;
     }
     setUploading(true);
 
+    // Process in batches of CONCURRENCY
     let successCount = 0;
-    for (let i = 0; i < entries.length; i++) {
-      if (entries[i].status !== "pending" && entries[i].status !== "error") continue;
-      try {
-        const isDuplicate = await checkDuplicateCandidate(jobDescriptionId, entries[i].file.name);
-        if (isDuplicate) {
-          updateStatus(i, "error", "Duplicate: a candidate with this resume already exists");
-          continue;
-        }
-
-        updateStatus(i, "uploading");
-        const resumeUrl = await uploadResumeFile(entries[i].file, jobDescriptionId);
-
-        updateStatus(i, "parsing");
-        await parseResume(jobDescriptionId, entries[i].file, resumeUrl, entries[i].file.name);
-
-        updateStatus(i, "done");
-        successCount++;
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Processing failed";
-        updateStatus(i, "error", msg);
-        console.error(`Failed to process ${entries[i].file.name}:`, err);
-      }
+    for (let start = 0; start < pendingIndices.length; start += CONCURRENCY) {
+      const batch = pendingIndices.slice(start, start + CONCURRENCY);
+      const results = await Promise.all(batch.map((i) => processOne(i)));
+      successCount += results.filter(Boolean).length;
     }
 
-    toast.success(`${successCount} of ${pendingEntries.length} resumes processed!`);
+    toast.success(`${successCount} of ${pendingIndices.length} resumes processed!`);
     setUploading(false);
     onUploadComplete();
   };
@@ -180,10 +197,14 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
             {entries.map((entry, i) => {
               const cfg = statusConfig[entry.status];
               const active = isActive(entry.status);
+              const staggerMs = addedAt[entry.file.name]
+                ? Math.max(0, addedAt[entry.file.name] - (addedAt[entries[0]?.file.name] || 0))
+                : i * 80;
               return (
                 <div
-                  key={i}
-                  className={`relative flex items-center gap-2 p-2 rounded-md transition-all duration-300 overflow-hidden ${
+                  key={entry.file.name}
+                  style={{ animationDelay: `${staggerMs}ms` }}
+                  className={`animate-slide-in-up relative flex items-center gap-2 p-2 rounded-md transition-all duration-300 overflow-hidden ${
                     entry.status === "done"
                       ? "bg-[hsl(var(--success)/0.06)]"
                       : entry.status === "error"
