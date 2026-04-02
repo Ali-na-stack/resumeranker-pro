@@ -93,40 +93,47 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
     setEntries((prev) => prev.map((e, i) => (i === index ? { ...e, status, error } : e)));
   };
 
+  const processOne = async (i: number): Promise<boolean> => {
+    try {
+      const entry = entries[i];
+      const isDuplicate = await checkDuplicateCandidate(jobDescriptionId, entry.file.name);
+      if (isDuplicate) {
+        updateStatus(i, "error", "Duplicate: a candidate with this resume already exists");
+        return false;
+      }
+      updateStatus(i, "uploading");
+      const resumeUrl = await uploadResumeFile(entry.file, jobDescriptionId);
+      updateStatus(i, "parsing");
+      await parseResume(jobDescriptionId, entry.file, resumeUrl, entry.file.name);
+      updateStatus(i, "done");
+      return true;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Processing failed";
+      updateStatus(i, "error", msg);
+      console.error(`Failed to process ${entries[i].file.name}:`, err);
+      return false;
+    }
+  };
+
   const handleUpload = async () => {
-    const pendingEntries = entries.filter((e) => e.status === "pending" || e.status === "error");
-    if (pendingEntries.length === 0) {
+    const pendingIndices = entries
+      .map((e, i) => (e.status === "pending" || e.status === "error" ? i : -1))
+      .filter((i) => i >= 0);
+    if (pendingIndices.length === 0) {
       toast.error("No files to process");
       return;
     }
     setUploading(true);
 
+    // Process in batches of CONCURRENCY
     let successCount = 0;
-    for (let i = 0; i < entries.length; i++) {
-      if (entries[i].status !== "pending" && entries[i].status !== "error") continue;
-      try {
-        const isDuplicate = await checkDuplicateCandidate(jobDescriptionId, entries[i].file.name);
-        if (isDuplicate) {
-          updateStatus(i, "error", "Duplicate: a candidate with this resume already exists");
-          continue;
-        }
-
-        updateStatus(i, "uploading");
-        const resumeUrl = await uploadResumeFile(entries[i].file, jobDescriptionId);
-
-        updateStatus(i, "parsing");
-        await parseResume(jobDescriptionId, entries[i].file, resumeUrl, entries[i].file.name);
-
-        updateStatus(i, "done");
-        successCount++;
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Processing failed";
-        updateStatus(i, "error", msg);
-        console.error(`Failed to process ${entries[i].file.name}:`, err);
-      }
+    for (let start = 0; start < pendingIndices.length; start += CONCURRENCY) {
+      const batch = pendingIndices.slice(start, start + CONCURRENCY);
+      const results = await Promise.all(batch.map((i) => processOne(i)));
+      successCount += results.filter(Boolean).length;
     }
 
-    toast.success(`${successCount} of ${pendingEntries.length} resumes processed!`);
+    toast.success(`${successCount} of ${pendingIndices.length} resumes processed!`);
     setUploading(false);
     onUploadComplete();
   };
