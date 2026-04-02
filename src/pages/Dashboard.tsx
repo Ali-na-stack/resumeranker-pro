@@ -9,9 +9,10 @@ import { ResumeUpload } from "@/components/ResumeUpload";
 import { CandidateCard } from "@/components/CandidateCard";
 import { StatsSummary } from "@/components/StatsSummary";
 import { EmptyState } from "@/components/EmptyState";
-import { fetchJobDescriptions, fetchCandidatesWithScores, rankCandidates } from "@/lib/api";
+import { fetchJobDescriptions, fetchCandidatesWithScores, rankCandidates, deleteJobDescription } from "@/lib/api";
 import type { CandidateWithScore } from "@/lib/api";
-import { Loader2, Briefcase, Zap, GitCompareArrows, Download, FileText, FileUp } from "lucide-react";
+import { Loader2, Briefcase, Zap, GitCompareArrows, Download, FileText, FileUp, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { exportCandidatesCSV, exportCandidatesPDF } from "@/lib/export";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -58,6 +59,7 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
   const [candidates, setCandidates] = useState<CandidateWithScore[]>([]);
   const [loading, setLoading] = useState(false);
   const [ranking, setRanking] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
@@ -113,6 +115,21 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
     }
   };
 
+  const handleDeleteJob = async () => {
+    if (!selectedJob) return;
+    setDeleting(true);
+    try {
+      await deleteJobDescription(selectedJob);
+      toast.success("Job description deleted");
+      setSelectedJob("");
+      setCandidates([]);
+      await loadJobs();
+    } catch {
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const currentJobTitle = jobs.find((j) => j.id === selectedJob)?.title;
 
   return (
@@ -128,18 +145,43 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
           )}
         </div>
         {jobs.length > 0 && (
-          <Select value={selectedJob} onValueChange={setSelectedJob}>
-            <SelectTrigger className="w-full sm:w-[250px] sm:ml-auto">
-              <SelectValue placeholder="Select a job" />
-            </SelectTrigger>
-            <SelectContent>
-              {jobs.map((job) => (
-                <SelectItem key={job.id} value={job.id}>
-                  {job.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
+            <Select value={selectedJob} onValueChange={setSelectedJob}>
+              <SelectTrigger className="w-full sm:w-[250px]">
+                <SelectValue placeholder="Select a job" />
+              </SelectTrigger>
+              <SelectContent>
+                {jobs.map((job) => (
+                  <SelectItem key={job.id} value={job.id}>
+                    {job.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedJob && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive shrink-0" disabled={deleting}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Job Description?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete "{currentJobTitle}" and all associated candidates, scores, and statuses. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteJob} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         )}
       </header>
 
