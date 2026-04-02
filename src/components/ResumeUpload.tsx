@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Upload, FileText, X, CheckCircle2, AlertCircle, Clock } from "lucide-react";
-import { uploadResumeFile, parseResume, checkDuplicateCandidate } from "@/lib/api";
+import { uploadResumeFile, parseResume } from "@/lib/api";
 import { toast } from "sonner";
 
 interface ResumeUploadProps {
