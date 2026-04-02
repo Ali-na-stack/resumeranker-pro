@@ -29,9 +29,12 @@ const statusConfig: Record<FileStatus, { label: string; stepLabel?: string }> = 
   error: { label: "Failed" },
 };
 
+const CONCURRENCY = 3;
+
 export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploadProps) {
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [addedAt, setAddedAt] = useState<Record<string, number>>({});
 
   const addFiles = useCallback((newFiles: File[]) => {
     const valid: FileEntry[] = [];
