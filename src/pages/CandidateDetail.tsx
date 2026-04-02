@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { updateCandidateStatus } from "@/lib/api";
+import { updateCandidateStatus, getResumeSignedUrl } from "@/lib/api";
 import type { CandidateWithScore } from "@/lib/api";
 import { ArrowLeft, Star, X, Bookmark, User, Briefcase, GraduationCap, Award, FolderOpen, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -30,6 +30,27 @@ function ScoreBar({ label, score, icon }: { label: string; score: number; icon: 
         <div className={`h-full rounded-full transition-all duration-1000 ${color}`} style={{ width: `${score}%` }} />
       </div>
     </div>
+  );
+}
+
+function ResumeButton({ resumeUrl }: { resumeUrl: string }) {
+  const [loading, setLoading] = useState(false);
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const signedUrl = await getResumeSignedUrl(resumeUrl);
+      window.open(signedUrl, "_blank");
+    } catch {
+      // toast already shown in getResumeSignedUrl
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Button variant="outline" className="w-full" onClick={handleClick} disabled={loading}>
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+      {loading ? "Generating link…" : "View Original Resume"}
+    </Button>
   );
 }
 
@@ -182,11 +203,7 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
             </div>
 
             {candidate.resume_url && (
-              <Button variant="outline" className="w-full" asChild>
-                <a href={candidate.resume_url} target="_blank" rel="noopener noreferrer">
-                  <FileText className="h-4 w-4" /> View Original Resume
-                </a>
-              </Button>
+              <ResumeButton resumeUrl={candidate.resume_url} />
             )}
           </div>
 

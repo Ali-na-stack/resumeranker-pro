@@ -163,8 +163,27 @@ export async function uploadResumeFile(file: File, jobDescriptionId: string) {
     toast.error("Failed to upload file");
     throw error;
   }
-  const { data: urlData } = supabase.storage.from("resumes").getPublicUrl(filePath);
-  return urlData.publicUrl;
+  // Return the file path for signed URL generation later
+  return filePath;
+}
+
+export async function getResumeSignedUrl(resumeUrl: string): Promise<string> {
+  // Handle both full public URLs and plain file paths
+  let filePath = resumeUrl;
+  const publicPrefix = "/storage/v1/object/public/resumes/";
+  const idx = resumeUrl.indexOf(publicPrefix);
+  if (idx !== -1) {
+    filePath = decodeURIComponent(resumeUrl.substring(idx + publicPrefix.length));
+  }
+
+  const { data, error } = await supabase.storage
+    .from("resumes")
+    .createSignedUrl(filePath, 3600);
+  if (error) {
+    toast.error("Failed to generate resume link");
+    throw error;
+  }
+  return data.signedUrl;
 }
 
 export async function checkDuplicateCandidate(
