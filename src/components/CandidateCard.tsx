@@ -152,7 +152,7 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
             <Button
               size="sm"
               variant={candidate.status === "shortlisted" ? "default" : "outline"}
-              className="flex-1 h-8 text-xs gap-1"
+              className="flex-1 h-8 text-xs gap-1 hover-glow"
               onClick={() => handleStatus("shortlisted")}
             >
               <Star className="h-3 w-3" />
@@ -161,7 +161,7 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
             <Button
               size="sm"
               variant={candidate.status === "rejected" ? "destructive" : "outline"}
-              className="flex-1 h-8 text-xs gap-1"
+              className="flex-1 h-8 text-xs gap-1 hover-underline-accent overflow-visible"
               onClick={() => handleStatus("rejected")}
             >
               <X className="h-3 w-3" />
@@ -170,7 +170,7 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
             <Button
               size="sm"
               variant={candidate.status === "saved" ? "secondary" : "outline"}
-              className="h-8 text-xs px-2.5"
+              className="h-8 text-xs px-2.5 hover-scale-sm"
               onClick={() => handleStatus("saved")}
             >
               <Bookmark className="h-3 w-3" />
