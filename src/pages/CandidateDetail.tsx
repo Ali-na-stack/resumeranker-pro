@@ -182,11 +182,7 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
             </div>
 
             {candidate.resume_url && (
-              <Button variant="outline" className="w-full" asChild>
-                <a href={candidate.resume_url} target="_blank" rel="noopener noreferrer">
-                  <FileText className="h-4 w-4" /> View Original Resume
-                </a>
-              </Button>
+              <ResumeButton resumeUrl={candidate.resume_url} />
             )}
           </div>
 
