@@ -48,7 +48,7 @@ export function StatsSummary({ candidates }: StatsSummaryProps) {
           key={stat.label}
           className={`flex items-center gap-3 rounded-lg border bg-gradient-to-br ${stat.gradient} p-4 hover-lift ${stat.featured ? "ring-1 ring-primary/10" : ""}`}
         >
-          <div className={`rounded-full ${stat.iconBg} p-2.5 ${stat.color}`}>
+          <div className={`rounded-full ${stat.iconBg} p-2.5 ${stat.color} transition-transform duration-300 group-hover:rotate-3`}>
             <stat.icon className="h-4 w-4" />
           </div>
           <div>
