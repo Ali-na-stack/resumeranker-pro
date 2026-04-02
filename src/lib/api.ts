@@ -167,6 +167,19 @@ export async function uploadResumeFile(file: File, jobDescriptionId: string) {
   return urlData.publicUrl;
 }
 
+export async function checkDuplicateCandidate(
+  jobDescriptionId: string,
+  filename: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("candidates")
+    .select("id")
+    .eq("job_description_id", jobDescriptionId)
+    .eq("resume_filename", filename)
+    .limit(1);
+  return (data?.length || 0) > 0;
+}
+
 export async function fetchJobDescriptions() {
   const { data, error } = await supabase
     .from("job_descriptions")

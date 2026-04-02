@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Upload, FileText, Loader2, X, CheckCircle2, AlertCircle, Clock } from "lucide-react";
-import { uploadResumeFile, parseResume } from "@/lib/api";
+import { uploadResumeFile, parseResume, checkDuplicateCandidate } from "@/lib/api";
 import { toast } from "sonner";
 
 interface ResumeUploadProps {
@@ -95,6 +95,13 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
     for (let i = 0; i < entries.length; i++) {
       if (entries[i].status !== "pending" && entries[i].status !== "error") continue;
       try {
+        // Check for duplicate candidate by filename
+        const isDuplicate = await checkDuplicateCandidate(jobDescriptionId, entries[i].file.name);
+        if (isDuplicate) {
+          updateStatus(i, "error", "Duplicate: a candidate with this resume already exists");
+          continue;
+        }
+
         updateStatus(i, "uploading");
         const resumeUrl = await uploadResumeFile(entries[i].file, jobDescriptionId);
 
