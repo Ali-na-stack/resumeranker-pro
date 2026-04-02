@@ -291,7 +291,7 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
                   />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {candidates.map((c) => (
+                    {candidates.map((c, i) => (
                       <div key={c.id} className="relative">
                         <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
