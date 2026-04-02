@@ -235,9 +235,9 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
           {/* Details */}
           <div className="lg:col-span-2 space-y-4">
             {s?.explanation && (
-              <Card>
+              <Card className="border-l-[3px] border-l-[hsl(var(--primary))] bg-primary/[0.02]">
                 <CardHeader>
-                  <CardTitle className="font-display text-base">AI Analysis</CardTitle>
+                  <CardTitle className="font-display text-sm text-muted-foreground uppercase tracking-wider">AI Analysis</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm leading-relaxed">{s.explanation}</p>
