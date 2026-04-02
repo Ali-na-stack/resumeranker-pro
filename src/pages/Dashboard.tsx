@@ -185,7 +185,7 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
         )}
       </header>
 
-      <main className="flex-1 p-4 sm:p-6 space-y-6 overflow-auto">
+      <main className="flex-1 p-4 sm:p-6 space-y-6 overflow-auto animate-fade-in">
         {!selectedJob ? (
           <div className="max-w-2xl mx-auto">
             <EmptyState
@@ -291,7 +291,7 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
                   />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {candidates.map((c) => (
+                    {candidates.map((c, i) => (
                       <div key={c.id} className="relative">
                         <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
@@ -303,6 +303,7 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
                           candidate={c}
                           biasReduction={biasReduction}
                           onStatusChange={loadCandidates}
+                          index={i}
                         />
                       </div>
                     ))}

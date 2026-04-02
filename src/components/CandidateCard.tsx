@@ -24,6 +24,7 @@ interface CandidateCardProps {
   candidate: CandidateWithScore;
   biasReduction: boolean;
   onStatusChange: () => void;
+  index?: number;
 }
 
 function getScoreColor(score: number) {
@@ -69,10 +70,11 @@ function getAvatarColor(name: string | null) {
   return colors[hash % colors.length];
 }
 
-export function CandidateCard({ candidate, biasReduction, onStatusChange }: {
+export function CandidateCard({ candidate, biasReduction, onStatusChange, index = 0 }: {
   candidate: CandidateWithScore;
   biasReduction: boolean;
   onStatusChange: () => void;
+  index?: number;
 }) {
   const navigate = useNavigate();
   const score = candidate.score?.overall_score || 0;
@@ -105,7 +107,8 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange }: {
   return (
     <>
       <Card
-        className={`hover:shadow-xl transition-all duration-300 cursor-pointer group relative border-t-2 ${getScoreAccent(score)}`}
+        className={`hover-lift hover:shadow-xl cursor-pointer group relative border-t-2 ${getScoreAccent(score)} animate-fade-in`}
+        style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
         onClick={() => navigate(`/candidate/${candidate.id}?job=${candidate.job_description_id}`)}
       >
         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">

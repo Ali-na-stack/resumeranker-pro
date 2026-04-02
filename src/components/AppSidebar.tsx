@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Star, Eye, EyeOff, Sun, Moon, Sparkles } from "lucide-react";
+import { LayoutDashboard, Users, Star, Eye, EyeOff, Sun, Moon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "next-themes";
@@ -43,24 +43,24 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
         <SidebarGroup>
           <SidebarGroupLabel>
             {!collapsed && (
-              <div className="flex items-center gap-2">
-                <div className="rounded-md bg-primary p-1">
-                  <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
+              <div className="flex items-center gap-2.5">
+                <div className="relative rounded-lg bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))] p-1.5 shadow-lg shadow-[hsl(var(--primary)/0.3)]">
+                  <span className="text-[10px] font-display font-bold text-primary-foreground leading-none">CR</span>
                 </div>
-                <span className="font-display text-xs font-bold tracking-wider uppercase text-sidebar-primary">
+                <span className="font-display text-xs font-bold tracking-wider uppercase text-sidebar-foreground">
                   CV Ranker
                 </span>
               </div>
             )}
             {collapsed && (
               <div className="flex justify-center">
-                <div className="rounded-md bg-primary p-1">
-                  <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
+                <div className="rounded-lg bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))] p-1.5 shadow-lg shadow-[hsl(var(--primary)/0.3)]">
+                  <span className="text-[10px] font-display font-bold text-primary-foreground leading-none">CR</span>
                 </div>
               </div>
             )}
           </SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="mt-2">
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -68,10 +68,10 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="hover:bg-sidebar-accent/50 transition-colors"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
+                      className="rounded-lg px-3 py-2 hover:bg-sidebar-accent/60 transition-all duration-200"
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium shadow-sm"
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
+                      <item.icon className="mr-2.5 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -83,36 +83,41 @@ export function AppSidebar({ biasReduction, onBiasReductionChange }: AppSidebarP
       </SidebarContent>
       {!collapsed && (
         <SidebarFooter className="p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-xs text-sidebar-foreground/70 hover:text-sidebar-foreground"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            >
-              {theme === "dark" ? (
-                <Sun className="h-4 w-4 mr-2" />
+          <div className="rounded-lg bg-sidebar-accent/40 p-3 space-y-3">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-xs text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-4 w-4 mr-2" />
+                ) : (
+                  <Moon className="h-4 w-4 mr-2" />
+                )}
+                {theme === "dark" ? "Light Mode" : "Dark Mode"}
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              {biasReduction ? (
+                <EyeOff className="h-4 w-4 text-sidebar-foreground/70" />
               ) : (
-                <Moon className="h-4 w-4 mr-2" />
+                <Eye className="h-4 w-4 text-sidebar-foreground/70" />
               )}
-              {theme === "dark" ? "Light Mode" : "Dark Mode"}
-            </Button>
+              <Label htmlFor="bias-mode" className="text-xs text-sidebar-foreground/70 cursor-pointer">
+                Bias Reduction
+              </Label>
+              <Switch
+                id="bias-mode"
+                checked={biasReduction}
+                onCheckedChange={onBiasReductionChange}
+                className="ml-auto scale-75"
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {biasReduction ? (
-              <EyeOff className="h-4 w-4 text-sidebar-foreground/70" />
-            ) : (
-              <Eye className="h-4 w-4 text-sidebar-foreground/70" />
-            )}
-            <Label htmlFor="bias-mode" className="text-xs text-sidebar-foreground/70 cursor-pointer">
-              Bias Reduction
-            </Label>
-            <Switch
-              id="bias-mode"
-              checked={biasReduction}
-              onCheckedChange={onBiasReductionChange}
-              className="ml-auto scale-75"
-            />
+          <div className="flex items-center justify-center">
+            <span className="text-[10px] text-sidebar-foreground/40 font-display tracking-wide">v1.0 Pro</span>
           </div>
         </SidebarFooter>
       )}
