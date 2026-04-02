@@ -59,6 +59,7 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
   const [candidates, setCandidates] = useState<CandidateWithScore[]>([]);
   const [loading, setLoading] = useState(false);
   const [ranking, setRanking] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
