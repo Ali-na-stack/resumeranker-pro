@@ -248,7 +248,7 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-display text-base text-success">Matched Skills</CardTitle>
+                  <CardTitle className="font-display text-xs uppercase tracking-wider text-success/80">Matched Skills</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-1.5">
