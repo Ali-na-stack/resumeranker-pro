@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { updateCandidateStatus } from "@/lib/api";
+import { updateCandidateStatus, getResumeSignedUrl } from "@/lib/api";
 import type { CandidateWithScore } from "@/lib/api";
 import { ArrowLeft, Star, X, Bookmark, User, Briefcase, GraduationCap, Award, FolderOpen, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
