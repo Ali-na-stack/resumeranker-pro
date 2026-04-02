@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { updateCandidateStatus, getResumeSignedUrl } from "@/lib/api";
+import { updateCandidateStatus, downloadResumeAsBlob } from "@/lib/api";
 import type { CandidateWithScore } from "@/lib/api";
 import { ArrowLeft, Star, X, Bookmark, User, Briefcase, GraduationCap, Award, FolderOpen, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -33,14 +33,44 @@ function ScoreBar({ label, score, icon }: { label: string; score: number; icon: 
   );
 }
 
-function ResumeButton({ resumeUrl }: { resumeUrl: string }) {
-  const handleClick = () => {
-    window.open(resumeUrl, "_blank", "noopener,noreferrer");
+function ResumeButton({ resumeUrl, filename }: { resumeUrl: string; filename?: string | null }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const { blobUrl, contentType } = await downloadResumeAsBlob(resumeUrl);
+
+      if (contentType.includes("pdf")) {
+        const win = window.open(blobUrl, "_blank");
+        if (!win) {
+          // Popup blocked — fall back to download
+          const a = document.createElement("a");
+          a.href = blobUrl;
+          a.download = filename || "resume.pdf";
+          a.click();
+        }
+        // Revoke after a delay so the new tab can load
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      } else {
+        // Non-PDF: trigger download
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = filename || "resume";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      }
+    } catch {
+      // error toast already shown by downloadResumeAsBlob
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
-    <Button variant="outline" className="w-full" onClick={handleClick}>
-      <FileText className="h-4 w-4" />
-      View Original Resume
+    <Button variant="outline" className="w-full" onClick={handleClick} disabled={loading}>
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+      {loading ? "Opening..." : "View Original Resume"}
     </Button>
   );
 }
@@ -194,7 +224,7 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
             </div>
 
             {candidate.resume_url && (
-              <ResumeButton resumeUrl={candidate.resume_url} />
+              <ResumeButton resumeUrl={candidate.resume_url} filename={candidate.resume_filename} />
             )}
           </div>
 

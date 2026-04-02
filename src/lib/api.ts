@@ -167,8 +167,8 @@ export async function uploadResumeFile(file: File, jobDescriptionId: string) {
   return filePath;
 }
 
-export async function getResumeSignedUrl(resumeUrl: string): Promise<string> {
-  // Handle both full public URLs and plain file paths
+export async function downloadResumeAsBlob(resumeUrl: string): Promise<{ blobUrl: string; contentType: string }> {
+  // Extract file path from full public URL or use as-is
   let filePath = resumeUrl;
   const publicPrefix = "/storage/v1/object/public/resumes/";
   const idx = resumeUrl.indexOf(publicPrefix);
@@ -178,12 +178,15 @@ export async function getResumeSignedUrl(resumeUrl: string): Promise<string> {
 
   const { data, error } = await supabase.storage
     .from("resumes")
-    .createSignedUrl(filePath, 3600);
+    .download(filePath);
   if (error) {
-    toast.error("Failed to generate resume link");
+    toast.error("Failed to download resume");
     throw error;
   }
-  return data.signedUrl;
+
+  const contentType = data.type || "application/octet-stream";
+  const blobUrl = URL.createObjectURL(data);
+  return { blobUrl, contentType };
 }
 
 export async function checkDuplicateCandidate(
