@@ -70,10 +70,11 @@ function getAvatarColor(name: string | null) {
   return colors[hash % colors.length];
 }
 
-export function CandidateCard({ candidate, biasReduction, onStatusChange }: {
+export function CandidateCard({ candidate, biasReduction, onStatusChange, index = 0 }: {
   candidate: CandidateWithScore;
   biasReduction: boolean;
   onStatusChange: () => void;
+  index?: number;
 }) {
   const navigate = useNavigate();
   const score = candidate.score?.overall_score || 0;
