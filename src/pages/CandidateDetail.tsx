@@ -33,6 +33,27 @@ function ScoreBar({ label, score, icon }: { label: string; score: number; icon: 
   );
 }
 
+function ResumeButton({ resumeUrl }: { resumeUrl: string }) {
+  const [loading, setLoading] = useState(false);
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const signedUrl = await getResumeSignedUrl(resumeUrl);
+      window.open(signedUrl, "_blank");
+    } catch {
+      // toast already shown in getResumeSignedUrl
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Button variant="outline" className="w-full" onClick={handleClick} disabled={loading}>
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+      {loading ? "Generating link…" : "View Original Resume"}
+    </Button>
+  );
+}
+
 export default function CandidateDetail({ biasReduction }: CandidateDetailProps) {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
