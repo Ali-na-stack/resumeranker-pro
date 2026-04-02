@@ -8,6 +8,7 @@ import { JobDescriptionForm } from "@/components/JobDescriptionForm";
 import { ResumeUpload } from "@/components/ResumeUpload";
 import { CandidateCard } from "@/components/CandidateCard";
 import { StatsSummary } from "@/components/StatsSummary";
+import { AIInsight } from "@/components/AIInsight";
 import { EmptyState } from "@/components/EmptyState";
 import { fetchJobDescriptions, fetchCandidatesWithScores, rankCandidates, deleteJobDescription } from "@/lib/api";
 import type { CandidateWithScore } from "@/lib/api";
@@ -23,30 +24,24 @@ interface DashboardProps {
 
 function CandidateSkeleton() {
   return (
-    <div className="rounded-lg border bg-card p-5 space-y-3 animate-pulse">
+    <div className="surface-elevated p-5 space-y-3 animate-pulse">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3 flex-1">
-          <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="h-9 w-9 rounded-full" />
           <div className="space-y-2 flex-1">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-20" />
           </div>
         </div>
-        <Skeleton className="h-14 w-14 rounded-full" />
+        <Skeleton className="h-12 w-12 rounded-full" />
       </div>
-      <Skeleton className="h-2.5 w-full rounded-full" />
-      <div className="space-y-2">
-        <Skeleton className="h-3 w-20" />
-        <div className="flex gap-1">
-          <Skeleton className="h-5 w-14 rounded-full" />
-          <Skeleton className="h-5 w-16 rounded-full" />
-          <Skeleton className="h-5 w-12 rounded-full" />
-        </div>
+      <div className="flex gap-1.5">
+        <Skeleton className="h-5 w-14 rounded-full" />
+        <Skeleton className="h-5 w-16 rounded-full" />
       </div>
       <div className="flex gap-2 pt-2">
         <Skeleton className="h-8 flex-1 rounded-md" />
-        <Skeleton className="h-8 flex-1 rounded-md" />
-        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-16 rounded-md" />
       </div>
     </div>
   );
@@ -134,34 +129,29 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      <header className="min-h-[3.5rem] flex flex-wrap items-center border-b bg-card/80 backdrop-blur-sm px-3 sm:px-4 gap-2 sm:gap-4 sticky top-0 z-20 py-2">
+      {/* Header */}
+      <header className="h-14 flex items-center border-b border-border/60 px-4 gap-3 sticky top-0 z-20 bg-background/80 backdrop-blur-sm">
         <SidebarTrigger />
-        <div className="flex items-center gap-2">
-          <h1 className="font-display font-bold text-base sm:text-lg">Dashboard</h1>
-          {currentJobTitle && (
-            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full hidden sm:inline">
-              {currentJobTitle}
-            </span>
-          )}
-        </div>
+        <h1 className="font-display font-semibold text-base tracking-tight">Dashboard</h1>
+        {currentJobTitle && (
+          <span className="text-xs text-muted-foreground hidden sm:inline">/ {currentJobTitle}</span>
+        )}
         {jobs.length > 0 && (
-          <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
+          <div className="flex items-center gap-2 ml-auto">
             <Select value={selectedJob} onValueChange={setSelectedJob}>
-              <SelectTrigger className="w-full sm:w-[250px]">
+              <SelectTrigger className="w-[220px] h-9 text-sm">
                 <SelectValue placeholder="Select a job" />
               </SelectTrigger>
               <SelectContent>
                 {jobs.map((job) => (
-                  <SelectItem key={job.id} value={job.id}>
-                    {job.title}
-                  </SelectItem>
+                  <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {selectedJob && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive shrink-0" disabled={deleting}>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" disabled={deleting}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </AlertDialogTrigger>
@@ -169,14 +159,12 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Job Description?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will permanently delete "{currentJobTitle}" and all associated candidates, scores, and statuses. This action cannot be undone.
+                      This will permanently delete "{currentJobTitle}" and all associated candidates. This cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteJob} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Delete
-                    </AlertDialogAction>
+                    <AlertDialogAction onClick={handleDeleteJob} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -185,54 +173,61 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
         )}
       </header>
 
-      <main className="flex-1 p-4 sm:p-6 space-y-6 overflow-auto animate-fade-in">
+      <main className="flex-1 p-5 sm:p-8 overflow-auto">
         {!selectedJob ? (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-lg mx-auto pt-8">
             <EmptyState
               icon={Briefcase}
-              title="Intelligent CV Ranking System"
-              subtitle="Start by entering a job description to analyze and rank candidates automatically using AI."
+              title="Start by adding a job description"
+              subtitle="Paste a job description to begin ranking candidates with AI."
             />
-            <div className="mt-2">
+            <div className="mt-4 surface-elevated p-6">
               <JobDescriptionForm
                 onJobCreated={(id) => {
                   setSelectedJob(id);
                   loadJobs();
                 }}
               />
-              <p className="text-[11px] text-muted-foreground/60 text-center mt-3 italic">
-                Tip: Paste the full job description for best AI matching results
-              </p>
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Stats Summary */}
+          <div className="space-y-8 max-w-7xl mx-auto">
+            {/* Stats */}
             {candidates.length > 0 && <StatsSummary candidates={candidates} />}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1 space-y-4">
-                <JobDescriptionForm
-                  onJobCreated={(id) => {
-                    setSelectedJob(id);
-                    loadJobs();
-                  }}
-                />
-                <ResumeUpload
-                  jobDescriptionId={selectedJob}
-                  onUploadComplete={loadCandidates}
-                />
+            {/* AI Insight */}
+            {candidates.length > 0 && <AIInsight candidates={candidates} />}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left: Setup */}
+              <div className="lg:col-span-1 space-y-6">
+                <div className="surface-elevated p-5">
+                  <JobDescriptionForm
+                    onJobCreated={(id) => {
+                      setSelectedJob(id);
+                      loadJobs();
+                    }}
+                  />
+                </div>
+
+                <div className="surface-elevated p-5">
+                  <ResumeUpload
+                    jobDescriptionId={selectedJob}
+                    onUploadComplete={loadCandidates}
+                  />
+                </div>
+
                 {candidates.length > 0 && (
                   <Button
                     onClick={handleRank}
                     disabled={ranking}
-                    className="w-full"
+                    className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
                     size="lg"
                   >
                     {ranking ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Ranking candidates...
+                        Ranking...
                       </>
                     ) : (
                       <>
@@ -244,61 +239,52 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
                 )}
               </div>
 
+              {/* Right: Candidates */}
               <div className="lg:col-span-2">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-display font-semibold text-lg">
-                    Ranked Candidates
-                    <span className="ml-2 text-xs font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                      {candidates.length}
-                    </span>
-                  </h2>
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <h2 className="font-display font-semibold text-base tracking-tight">Candidates</h2>
+                    {candidates.length > 0 && (
+                      <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                        {candidates.length}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
                     {candidates.length > 0 && (
                       <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => exportCandidatesCSV(candidates, currentJobTitle || "Candidates")}
-                        >
+                        <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" onClick={() => exportCandidatesCSV(candidates, currentJobTitle || "Candidates")}>
                           <Download className="h-3.5 w-3.5 mr-1" /> CSV
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => exportCandidatesPDF(candidates, currentJobTitle || "Candidates")}
-                        >
+                        <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" onClick={() => exportCandidatesPDF(candidates, currentJobTitle || "Candidates")}>
                           <FileText className="h-3.5 w-3.5 mr-1" /> PDF
                         </Button>
                       </>
                     )}
                     {selectedIds.size >= 2 && (
-                      <Button
-                        size="sm"
-                        onClick={() => navigate(`/compare?job=${selectedJob}&ids=${Array.from(selectedIds).join(",")}`)}
-                      >
-                        <GitCompareArrows className="h-4 w-4 mr-1" />
+                      <Button size="sm" className="h-8 text-xs" onClick={() => navigate(`/compare?job=${selectedJob}&ids=${Array.from(selectedIds).join(",")}`)}>
+                        <GitCompareArrows className="h-3.5 w-3.5 mr-1" />
                         Compare ({selectedIds.size})
                       </Button>
                     )}
                   </div>
                 </div>
+
                 {loading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[...Array(4)].map((_, i) => (
-                      <CandidateSkeleton key={i} />
-                    ))}
+                    {[...Array(4)].map((_, i) => <CandidateSkeleton key={i} />)}
                   </div>
                 ) : candidates.length === 0 ? (
                   <EmptyState
                     icon={FileUp}
-                    title="No Candidates Yet"
-                    subtitle="Upload resumes on the left panel to start ranking candidates against this job description."
+                    title="No candidates yet"
+                    subtitle="Upload resumes to start ranking candidates against this job."
                   />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {candidates.map((c, i) => (
                       <div key={c.id} className="relative">
-                        <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
+                        <div className="absolute top-4 left-4 z-10" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={selectedIds.has(c.id)}
                             onCheckedChange={() => toggleSelect(c.id)}

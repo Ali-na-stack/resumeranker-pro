@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Upload, FileText, X, CheckCircle2, AlertCircle, Clock } from "lucide-react";
@@ -23,8 +22,8 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 const statusConfig: Record<FileStatus, { label: string; stepLabel?: string }> = {
   pending: { label: "Pending" },
-  uploading: { label: "Uploading", stepLabel: "Step 1/2 — Uploading" },
-  parsing: { label: "AI Parsing", stepLabel: "Step 2/2 — AI Parsing" },
+  uploading: { label: "Uploading", stepLabel: "Step 1/2" },
+  parsing: { label: "AI Parsing", stepLabel: "Step 2/2" },
   done: { label: "Done" },
   error: { label: "Failed" },
 };
@@ -34,7 +33,6 @@ const CONCURRENCY = 3;
 export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploadProps) {
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [addedAt, setAddedAt] = useState<Record<string, number>>({});
 
   const addFiles = useCallback((newFiles: File[]) => {
     const valid: FileEntry[] = [];
@@ -51,21 +49,13 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
     }
     setEntries((prev) => {
       const existingNames = new Set(prev.map((e) => e.file.name));
-      const unique = valid.filter((v) => {
+      return [...prev, ...valid.filter((v) => {
         if (existingNames.has(v.file.name)) {
           toast.error(`${v.file.name}: already added`);
           return false;
         }
         return true;
-      });
-      // Record stagger index for animation delay
-      const now = Date.now();
-      setAddedAt((prev) => {
-        const next = { ...prev };
-        unique.forEach((v, i) => { next[v.file.name] = now + i * 80; });
-        return next;
-      });
-      return [...prev, ...unique];
+      })];
     });
   }, []);
 
@@ -105,7 +95,6 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
     } catch (err: any) {
       let msg = "Processing failed";
       if (err?.message) msg = err.message;
-      // Handle duplicate response from edge function
       if (err?.context?.body) {
         try {
           const body = typeof err.context.body === "string" ? JSON.parse(err.context.body) : err.context.body;
@@ -113,7 +102,6 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
         } catch {}
       }
       updateStatus(i, "error", msg);
-      console.error(`Failed to process ${entries[i].file.name}:`, err);
       return false;
     }
   };
@@ -128,7 +116,6 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
     }
     setUploading(true);
 
-    // Process in batches of CONCURRENCY
     let successCount = 0;
     for (let start = 0; start < pendingIndices.length; start += CONCURRENCY) {
       const batch = pendingIndices.slice(start, start + CONCURRENCY);
@@ -145,158 +132,101 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
   const doneCount = entries.filter((e) => e.status === "done").length;
   const totalCount = entries.length;
   const overallProgress = totalCount > 0 ? (doneCount / totalCount) * 100 : 0;
-
   const isActive = (s: FileStatus) => s === "uploading" || s === "parsing";
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-display">
-          <Upload className="h-5 w-5 text-primary" />
-          Upload Resumes
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 group/drop ${
-            uploading
-              ? "border-muted cursor-not-allowed opacity-50"
-              : "border-border hover:border-primary/50 hover:bg-primary/[0.02] cursor-pointer"
-          }`}
-          onClick={() => !uploading && document.getElementById("file-input")?.click()}
-        >
-          <div className="mx-auto mb-3 w-14 h-14 rounded-xl bg-gradient-to-br from-[hsl(var(--primary)/0.12)] to-[hsl(var(--accent)/0.08)] flex items-center justify-center shadow-sm group-hover/drop:shadow-md transition-shadow duration-300">
-            <Upload className="h-6 w-6 text-primary" />
-          </div>
-          <p className="text-sm font-medium text-foreground">
-            Drop resumes here or click to browse
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            PDF, DOCX, TXT — max 10MB each
-          </p>
-          <input
-            id="file-input"
-            type="file"
-            multiple
-            accept=".pdf,.docx,.txt"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-        </div>
+    <div>
+      <div className="flex items-center gap-2 mb-4">
+        <Upload className="h-4 w-4 text-muted-foreground" />
+        <h3 className="font-display font-medium text-sm">Upload Resumes</h3>
+      </div>
 
-        {entries.length > 0 && (
-          <div className="space-y-2">
-            {uploading && (
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Overall progress</span>
-                  <span>{doneCount}/{totalCount}</span>
-                </div>
-                <Progress value={overallProgress} className="h-2" glowing />
+      <div
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+        className={`border border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
+          uploading
+            ? "border-border/50 cursor-not-allowed opacity-50"
+            : "border-border hover:border-primary/40 cursor-pointer"
+        }`}
+        onClick={() => !uploading && document.getElementById("file-input")?.click()}
+      >
+        <Upload className="h-5 w-5 text-muted-foreground/40 mx-auto mb-2" />
+        <p className="text-sm text-foreground/70">Drop files here or click to browse</p>
+        <p className="text-[11px] text-muted-foreground mt-1">PDF, DOCX, TXT — max 10MB</p>
+        <input
+          id="file-input"
+          type="file"
+          multiple
+          accept=".pdf,.docx,.txt"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+      </div>
+
+      {entries.length > 0 && (
+        <div className="mt-3 space-y-1.5">
+          {uploading && (
+            <div className="space-y-1 mb-2">
+              <div className="flex justify-between text-[11px] text-muted-foreground">
+                <span>Progress</span>
+                <span>{doneCount}/{totalCount}</span>
               </div>
-            )}
-            {entries.map((entry, i) => {
-              const cfg = statusConfig[entry.status];
-              const active = isActive(entry.status);
-              const staggerMs = addedAt[entry.file.name]
-                ? Math.max(0, addedAt[entry.file.name] - (addedAt[entries[0]?.file.name] || 0))
-                : i * 80;
-              return (
-                <div
-                  key={entry.file.name}
-                  style={{ animationDelay: `${staggerMs}ms` }}
-                  className={`animate-slide-in-up relative flex items-center gap-2 p-2 rounded-md transition-all duration-300 overflow-hidden ${
-                    entry.status === "done"
-                      ? "bg-[hsl(var(--success)/0.06)]"
-                      : entry.status === "error"
-                      ? "bg-[hsl(var(--destructive)/0.06)] animate-shake"
-                      : active
-                      ? "bg-[hsl(var(--primary)/0.04)] border-l-2 border-l-primary"
-                      : "bg-muted"
-                  }`}
-                >
-                  {active && (
-                    <div className="absolute inset-0 animate-shimmer pointer-events-none" />
-                  )}
-
-                  <FileText className={`h-4 w-4 shrink-0 ${active ? "text-primary animate-pulse" : "text-primary"}`} />
-
-                  <div className="flex-1 min-w-0 relative z-10">
-                    <span className="text-sm truncate block">{entry.file.name}</span>
-                    {entry.error && (
-                      <span className="text-[10px] text-destructive">{entry.error}</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0 relative z-10">
-                    <span className="text-xs text-muted-foreground">
-                      {(entry.file.size / 1024).toFixed(0)}KB
-                    </span>
-
-                    {entry.status === "done" && (
-                      <CheckCircle2 className="h-4 w-4 text-[hsl(var(--success))] animate-check-pop" />
-                    )}
-                    {entry.status === "error" && (
-                      <AlertCircle className="h-4 w-4 text-destructive" />
-                    )}
-                    {entry.status === "pending" && (
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                    )}
-                    {active && (
-                      <div className="flex items-center gap-1">
-                        <div className="flex gap-0.5">
-                          <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
-                          <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
-                          <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
-                        </div>
-                      </div>
-                    )}
-
-                    <span className={`text-[10px] font-medium ${
-                      entry.status === "done" ? "text-[hsl(var(--success))]"
-                      : entry.status === "error" ? "text-destructive"
-                      : active ? "text-primary"
-                      : "text-muted-foreground"
-                    }`}>
-                      {active ? cfg.stepLabel : cfg.label}
-                    </span>
-                  </div>
-
-                  {!uploading && (
-                    <button
-                      onClick={() => removeFile(i)}
-                      className="text-muted-foreground hover:text-destructive shrink-0 relative z-10"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <Button
-          onClick={handleUpload}
-          disabled={uploading || pendingCount === 0}
-          className="w-full"
-        >
-          {uploading ? (
-            <span className="flex items-center gap-2">
-              Processing
-              <span className="flex gap-0.5">
-                <span className="w-1 h-1 rounded-full bg-primary-foreground animate-bounce [animation-delay:0ms]" />
-                <span className="w-1 h-1 rounded-full bg-primary-foreground animate-bounce [animation-delay:150ms]" />
-                <span className="w-1 h-1 rounded-full bg-primary-foreground animate-bounce [animation-delay:300ms]" />
-              </span>
-            </span>
-          ) : (
-            `Upload & Parse ${pendingCount} Resume${pendingCount !== 1 ? "s" : ""}`
+              <Progress value={overallProgress} className="h-1.5" glowing />
+            </div>
           )}
-        </Button>
-      </CardContent>
-    </Card>
+          {entries.map((entry, i) => {
+            const cfg = statusConfig[entry.status];
+            const active = isActive(entry.status);
+            return (
+              <div
+                key={entry.file.name}
+                className={`flex items-center gap-2 p-2 rounded-md text-sm transition-colors ${
+                  entry.status === "done"
+                    ? "bg-[hsl(var(--success))]/[0.05]"
+                    : entry.status === "error"
+                    ? "bg-destructive/[0.05]"
+                    : active
+                    ? "bg-primary/[0.04]"
+                    : "bg-muted/50"
+                }`}
+              >
+                <FileText className={`h-3.5 w-3.5 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                <span className="flex-1 min-w-0 truncate text-xs">{entry.file.name}</span>
+                {entry.error && <span className="text-[10px] text-destructive truncate max-w-[100px]">{entry.error}</span>}
+
+                <span className={`text-[10px] shrink-0 ${
+                  entry.status === "done" ? "text-[hsl(var(--success))]"
+                  : entry.status === "error" ? "text-destructive"
+                  : active ? "text-primary"
+                  : "text-muted-foreground"
+                }`}>
+                  {active ? cfg.stepLabel : cfg.label}
+                </span>
+
+                {entry.status === "done" && <CheckCircle2 className="h-3.5 w-3.5 text-[hsl(var(--success))] shrink-0" />}
+                {entry.status === "error" && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
+                {entry.status === "pending" && <Clock className="h-3 w-3 text-muted-foreground shrink-0" />}
+                {active && <Loader2 className="h-3 w-3 text-primary animate-spin shrink-0" />}
+
+                {!uploading && (
+                  <button onClick={() => removeFile(i)} className="text-muted-foreground hover:text-destructive shrink-0">
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Button
+        onClick={handleUpload}
+        disabled={uploading || pendingCount === 0}
+        className="w-full mt-3"
+      >
+        {uploading ? "Processing..." : `Upload & Parse ${pendingCount} Resume${pendingCount !== 1 ? "s" : ""}`}
+      </Button>
+    </div>
   );
 }

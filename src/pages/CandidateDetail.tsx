@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { ScoreRing } from "@/components/ScoreRing";
 import { supabase } from "@/integrations/supabase/client";
 import { updateCandidateStatus, downloadResumeAsBlob } from "@/lib/api";
@@ -18,17 +16,17 @@ interface CandidateDetailProps {
 }
 
 function ScoreBar({ label, score, icon }: { label: string; score: number; icon: React.ReactNode }) {
-  const color = score >= 80 ? "bg-success" : score >= 60 ? "bg-primary" : score >= 40 ? "bg-warning" : "bg-destructive";
+  const color = score >= 80 ? "bg-[hsl(var(--success))]" : score >= 60 ? "bg-primary" : score >= 40 ? "bg-[hsl(var(--warning))]" : "bg-destructive";
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <div className="flex items-center justify-between text-sm">
         <span className="flex items-center gap-1.5 text-muted-foreground">
           {icon}
           {label}
         </span>
-        <span className="font-display font-semibold">{Math.round(score)}%</span>
+        <span className="font-display font-semibold text-sm">{Math.round(score)}%</span>
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all duration-1000 ${color}`} style={{ width: `${score}%` }} />
       </div>
     </div>
@@ -42,29 +40,23 @@ function ResumeButton({ resumeUrl, filename }: { resumeUrl: string; filename?: s
     setLoading(true);
     try {
       const { blobUrl, contentType } = await downloadResumeAsBlob(resumeUrl);
-
       if (contentType.includes("pdf")) {
         const win = window.open(blobUrl, "_blank");
         if (!win) {
-          // Popup blocked — fall back to download
           const a = document.createElement("a");
           a.href = blobUrl;
           a.download = filename || "resume.pdf";
           a.click();
         }
-        // Revoke after a delay so the new tab can load
         setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
       } else {
-        // Non-PDF: trigger download
         const a = document.createElement("a");
         a.href = blobUrl;
         a.download = filename || "resume";
         a.click();
         setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
       }
-    } catch {
-      // error toast already shown by downloadResumeAsBlob
-    } finally {
+    } catch {} finally {
       setLoading(false);
     }
   };
@@ -92,16 +84,9 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
       if (!c) { setLoading(false); return; }
 
       const { data: score } = await supabase
-        .from("candidate_scores")
-        .select("*")
-        .eq("candidate_id", id)
-        .maybeSingle();
-
+        .from("candidate_scores").select("*").eq("candidate_id", id).maybeSingle();
       const { data: statusRow } = await supabase
-        .from("candidate_statuses")
-        .select("*")
-        .eq("candidate_id", id)
-        .maybeSingle();
+        .from("candidate_statuses").select("*").eq("candidate_id", id).maybeSingle();
 
       setCandidate({
         ...c,
@@ -126,7 +111,7 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -151,76 +136,64 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      <header className="min-h-[3.5rem] flex items-center border-b bg-card px-3 sm:px-4 gap-2 sm:gap-4 py-2">
+      <header className="h-14 flex items-center border-b border-border/60 px-4 gap-3 bg-background/80 backdrop-blur-sm">
         <SidebarTrigger />
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Back</span>
+        <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
-        <h1 className="font-display font-bold text-base sm:text-lg truncate">
+        <h1 className="font-display font-semibold text-base tracking-tight truncate">
           {biasReduction ? `Candidate #${candidate.id.slice(0, 6)}` : candidate.name || "Unknown"}
         </h1>
       </header>
 
-      <main className="flex-1 p-4 sm:p-6 overflow-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {/* Score Overview */}
-          <div className="lg:col-span-1 space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display text-base">Match Score</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="flex justify-center">
-                  <ScoreRing score={s?.overall_score || 0} size={100} strokeWidth={6} />
-                </div>
-                <p className="text-center text-sm text-muted-foreground">Overall Match</p>
-                <div className="space-y-1">
-                  <ScoreBar label="Skills" score={s?.skills_score || 0} icon={<Briefcase className="h-3 w-3" />} />
-                  <Separator className="my-2 opacity-50" />
-                  <ScoreBar label="Experience" score={s?.experience_score || 0} icon={<User className="h-3 w-3" />} />
-                  <Separator className="my-2 opacity-50" />
-                  <ScoreBar label="Education" score={s?.education_score || 0} icon={<GraduationCap className="h-3 w-3" />} />
-                  <Separator className="my-2 opacity-50" />
-                  <ScoreBar label="Projects" score={s?.projects_score || 0} icon={<FolderOpen className="h-3 w-3" />} />
-                  <Separator className="my-2 opacity-50" />
-                  <ScoreBar label="Certifications" score={s?.certifications_score || 0} icon={<Award className="h-3 w-3" />} />
-                </div>
-              </CardContent>
-            </Card>
+      <main className="flex-1 p-5 sm:p-8 overflow-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          {/* Left: Score */}
+          <div className="lg:col-span-1 space-y-5">
+            <div className="surface-elevated p-6">
+              <h3 className="font-display text-sm font-medium text-muted-foreground mb-5">Match Score</h3>
+              <div className="flex justify-center mb-4">
+                <ScoreRing score={s?.overall_score || 0} size={120} strokeWidth={6} />
+              </div>
+              <p className="text-center text-xs text-muted-foreground mb-6">Overall Match</p>
+              <div className="space-y-4">
+                <ScoreBar label="Skills" score={s?.skills_score || 0} icon={<Briefcase className="h-3 w-3" />} />
+                <ScoreBar label="Experience" score={s?.experience_score || 0} icon={<User className="h-3 w-3" />} />
+                <ScoreBar label="Education" score={s?.education_score || 0} icon={<GraduationCap className="h-3 w-3" />} />
+                <ScoreBar label="Projects" score={s?.projects_score || 0} icon={<FolderOpen className="h-3 w-3" />} />
+                <ScoreBar label="Certifications" score={s?.certifications_score || 0} icon={<Award className="h-3 w-3" />} />
+              </div>
+            </div>
 
             {candidate.quality_score !== null && candidate.quality_score > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display text-base">Resume Quality</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center mb-2">
-                    <span className="text-2xl font-display font-bold">{Math.round(candidate.quality_score)}</span>
-                    <span className="text-muted-foreground">/100</span>
-                  </div>
-                  <Progress value={candidate.quality_score} className="h-2" />
-                </CardContent>
-              </Card>
+              <div className="surface-elevated p-5">
+                <h3 className="font-display text-sm font-medium text-muted-foreground mb-3">Resume Quality</h3>
+                <div className="text-center mb-2">
+                  <span className="text-2xl font-display font-bold">{Math.round(candidate.quality_score)}</span>
+                  <span className="text-muted-foreground text-sm">/100</span>
+                </div>
+                <Progress value={candidate.quality_score} className="h-1.5" />
+              </div>
             )}
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
               <Button
                 variant={candidate.status === "shortlisted" ? "default" : "outline"}
-                className="flex-1 min-w-[100px] min-h-[44px]"
+                className="flex-1 h-10"
                 onClick={() => handleStatus("shortlisted")}
               >
                 <Star className="h-4 w-4" /> Shortlist
               </Button>
               <Button
                 variant={candidate.status === "rejected" ? "destructive" : "outline"}
-                className="flex-1 min-w-[100px] min-h-[44px]"
+                className="flex-1 h-10"
                 onClick={() => handleStatus("rejected")}
               >
                 <X className="h-4 w-4" /> Reject
               </Button>
               <Button
                 variant={candidate.status === "saved" ? "secondary" : "outline"}
-                className="min-h-[44px]"
+                className="h-10 px-3"
                 onClick={() => handleStatus("saved")}
               >
                 <Bookmark className="h-4 w-4" />
@@ -232,110 +205,84 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
             )}
           </div>
 
-          {/* Details */}
-          <div className="lg:col-span-2 space-y-4">
+          {/* Right: Details */}
+          <div className="lg:col-span-2 space-y-5">
             {s?.explanation && (
-              <Card className="border-l-[3px] border-l-[hsl(var(--primary))] bg-primary/[0.02]">
-                <CardHeader>
-                  <CardTitle className="font-display text-sm text-muted-foreground uppercase tracking-wider">AI Analysis</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm leading-relaxed">{s.explanation}</p>
-                </CardContent>
-              </Card>
+              <div className="border-l-2 border-primary/40 bg-primary/[0.03] rounded-r-lg px-5 py-4">
+                <p className="text-[11px] font-medium text-primary/60 uppercase tracking-wider mb-2">AI Analysis</p>
+                <p className="text-sm leading-relaxed text-foreground/80">{s.explanation}</p>
+              </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display text-xs uppercase tracking-wider text-success/80">Matched Skills</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(s?.matched_skills || []).map((skill) => (
-                      <Badge key={skill} variant="secondary">{skill}</Badge>
-                    ))}
-                    {(!s?.matched_skills || s.matched_skills.length === 0) && (
-                      <p className="text-sm text-muted-foreground">No matched skills</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="surface-elevated p-5">
+                <h4 className="text-[11px] font-medium uppercase tracking-wider text-[hsl(var(--success))]/70 mb-3">Matched Skills</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {(s?.matched_skills || []).map((skill) => (
+                    <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>
+                  ))}
+                  {(!s?.matched_skills || s.matched_skills.length === 0) && (
+                    <p className="text-sm text-muted-foreground">No matched skills</p>
+                  )}
+                </div>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display text-xs uppercase tracking-wider text-destructive/80">Missing Skills</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(s?.missing_skills || []).map((skill) => (
-                      <Badge key={skill} variant="destructive" className="opacity-80">{skill}</Badge>
-                    ))}
-                    {(!s?.missing_skills || s.missing_skills.length === 0) && (
-                      <p className="text-sm text-muted-foreground">No missing skills</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="surface-elevated p-5">
+                <h4 className="text-[11px] font-medium uppercase tracking-wider text-destructive/70 mb-3">Missing Skills</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {(s?.missing_skills || []).map((skill) => (
+                    <Badge key={skill} variant="outline" className="text-xs text-destructive/70 border-destructive/20">{skill}</Badge>
+                  ))}
+                  {(!s?.missing_skills || s.missing_skills.length === 0) && (
+                    <p className="text-sm text-muted-foreground">No missing skills</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {!biasReduction && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display text-base">Contact Info</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <p><strong>Name:</strong> {candidate.name || "N/A"}</p>
-                  <p><strong>Email:</strong> {candidate.email || "N/A"}</p>
-                </CardContent>
-              </Card>
+              <div className="surface-elevated p-5">
+                <h4 className="font-display text-sm font-medium mb-3">Contact Info</h4>
+                <div className="space-y-1 text-sm text-foreground/80">
+                  <p><span className="text-muted-foreground">Name:</span> {candidate.name || "N/A"}</p>
+                  <p><span className="text-muted-foreground">Email:</span> {candidate.email || "N/A"}</p>
+                </div>
+              </div>
             )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display text-base">Skills</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-1.5">
-                  {(candidate.skills || []).map((skill) => (
-                    <Badge key={skill} variant="outline">{skill}</Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="surface-elevated p-5">
+              <h4 className="font-display text-sm font-medium mb-3">All Skills</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {(candidate.skills || []).map((skill) => (
+                  <Badge key={skill} variant="outline" className="text-xs">{skill}</Badge>
+                ))}
+              </div>
+            </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display text-base">Education</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm">{candidate.education || "Not specified"}</p>
-              </CardContent>
-            </Card>
+            <div className="surface-elevated p-5">
+              <h4 className="font-display text-sm font-medium mb-2">Education</h4>
+              <p className="text-sm text-foreground/80">{candidate.education || "Not specified"}</p>
+            </div>
 
             {roles.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display text-base">Work Experience</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+              <div className="surface-elevated p-5">
+                <h4 className="font-display text-sm font-medium mb-4">Work Experience</h4>
+                <div className="space-y-4">
                   {roles.map((role: any, i: number) => (
-                    <div key={i} className="border-l-2 border-primary/30 pl-3">
+                    <div key={i} className="border-l-2 border-border pl-4">
                       <p className="font-medium text-sm">{role.title}</p>
                       <p className="text-xs text-muted-foreground">{role.company} {role.duration ? `· ${role.duration}` : ""}</p>
-                      {role.description && <p className="text-xs mt-1">{role.description}</p>}
+                      {role.description && <p className="text-xs text-foreground/70 mt-1">{role.description}</p>}
                     </div>
                   ))}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
             {projects.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display text-base">Projects</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+              <div className="surface-elevated p-5">
+                <h4 className="font-display text-sm font-medium mb-4">Projects</h4>
+                <div className="space-y-3">
                   {projects.map((proj: any, i: number) => (
                     <div key={i}>
                       <p className="font-medium text-sm">{proj.name}</p>
@@ -349,23 +296,19 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
                       )}
                     </div>
                   ))}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
             {candidate.certifications && candidate.certifications.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display text-base">Certifications</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-1.5">
-                    {candidate.certifications.map((cert) => (
-                      <Badge key={cert} variant="secondary">{cert}</Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="surface-elevated p-5">
+                <h4 className="font-display text-sm font-medium mb-3">Certifications</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {candidate.certifications.map((cert) => (
+                    <Badge key={cert} variant="secondary" className="text-xs">{cert}</Badge>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </div>
