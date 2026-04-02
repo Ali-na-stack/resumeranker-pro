@@ -193,12 +193,17 @@ export default function Dashboard({ biasReduction }: DashboardProps) {
               title="Intelligent CV Ranking System"
               subtitle="Start by entering a job description to analyze and rank candidates automatically using AI."
             />
-            <JobDescriptionForm
-              onJobCreated={(id) => {
-                setSelectedJob(id);
-                loadJobs();
-              }}
-            />
+            <div className="mt-2">
+              <JobDescriptionForm
+                onJobCreated={(id) => {
+                  setSelectedJob(id);
+                  loadJobs();
+                }}
+              />
+              <p className="text-[11px] text-muted-foreground/60 text-center mt-3 italic">
+                Tip: Paste the full job description for best AI matching results
+              </p>
+            </div>
           </div>
         ) : (
           <div className="space-y-6">

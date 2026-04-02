@@ -264,7 +264,7 @@ export default function CandidateDetail({ biasReduction }: CandidateDetailProps)
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="font-display text-base text-destructive">Missing Skills</CardTitle>
+                  <CardTitle className="font-display text-xs uppercase tracking-wider text-destructive/80">Missing Skills</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-1.5">
