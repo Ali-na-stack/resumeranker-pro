@@ -197,10 +197,14 @@ export function ResumeUpload({ jobDescriptionId, onUploadComplete }: ResumeUploa
             {entries.map((entry, i) => {
               const cfg = statusConfig[entry.status];
               const active = isActive(entry.status);
+              const staggerMs = addedAt[entry.file.name]
+                ? Math.max(0, addedAt[entry.file.name] - (addedAt[entries[0]?.file.name] || 0))
+                : i * 80;
               return (
                 <div
-                  key={i}
-                  className={`relative flex items-center gap-2 p-2 rounded-md transition-all duration-300 overflow-hidden ${
+                  key={entry.file.name}
+                  style={{ animationDelay: `${staggerMs}ms` }}
+                  className={`animate-slide-in-up relative flex items-center gap-2 p-2 rounded-md transition-all duration-300 overflow-hidden ${
                     entry.status === "done"
                       ? "bg-[hsl(var(--success)/0.06)]"
                       : entry.status === "error"
