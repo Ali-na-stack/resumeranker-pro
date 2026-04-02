@@ -1,29 +1,25 @@
 
 
-## Add Delete Candidate Feature
+## Add Delete Job Description Feature
 
 ### Overview
-Add the ability to delete candidates from the list. A delete button will appear on each candidate card, with a confirmation dialog to prevent accidental deletions.
+Add a delete button next to the job description selector so users can remove job descriptions they no longer need, with a confirmation dialog.
 
 ### Changes
 
-**1. `src/lib/api.ts` — Add `deleteCandidate` function**
-- Delete from `candidate_scores` where `candidate_id` matches
-- Delete from `candidate_statuses` where `candidate_id` matches
-- Delete from `candidates` where `id` matches
-- Note: `candidate_scores` currently lacks a DELETE RLS policy, so a migration is needed
+**1. `src/pages/Dashboard.tsx`**
+- Import `Trash2` from lucide-react and `AlertDialog` components
+- Add a delete (trash) icon button next to the job selector dropdown
+- Wrap it in an `AlertDialog` confirmation ("This will delete the job and all associated candidates. Are you sure?")
+- On confirm, call `deleteJobDescription(selectedJob)`, then refresh jobs list and clear selection if the deleted job was selected
 
-**2. Database migration — Add missing DELETE policies**
-- Add DELETE policy on `candidate_scores` table (currently missing)
-- `candidate_statuses` also lacks DELETE — add there too
+**2. No API changes needed**
+`deleteJobDescription` already exists in `src/lib/api.ts`. The database already has a DELETE RLS policy on `job_descriptions`. Note: deleting a job won't cascade-delete candidates since there are no foreign keys — we'll also delete associated candidates, scores, and statuses in the handler.
 
-**3. `src/components/CandidateCard.tsx` — Add delete button**
-- Add a `Trash2` icon button in the action bar (next to Shortlist/Reject/Save)
-- Wrap in an `AlertDialog` confirmation ("Are you sure? This cannot be undone.")
-- On confirm, call `deleteCandidate` then trigger `onStatusChange` to refresh the list
+**3. `src/lib/api.ts` — Enhance `deleteJobDescription`**
+- Before deleting the job, also delete all `candidate_scores`, `candidate_statuses`, and `candidates` linked to that `job_description_id` to clean up orphaned data
 
 ### Files to Modify
-- `src/lib/api.ts` — New `deleteCandidate` function
-- `src/components/CandidateCard.tsx` — Delete button + confirmation dialog
-- Database migration — DELETE RLS policies on `candidate_scores` and `candidate_statuses`
+- `src/pages/Dashboard.tsx` — Delete button + confirmation dialog in header
+- `src/lib/api.ts` — Cascade-delete related records in `deleteJobDescription`
 
