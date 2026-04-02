@@ -176,7 +176,20 @@ export async function fetchJobDescriptions() {
   return data || [];
 }
 
+export async function deleteCandidate(candidateId: string) {
+  await supabase.from("candidate_scores").delete().eq("candidate_id", candidateId);
+  await supabase.from("candidate_statuses").delete().eq("candidate_id", candidateId);
+  const { error } = await supabase.from("candidates").delete().eq("id", candidateId);
+  if (error) {
+    toast.error("Failed to delete candidate");
+    throw error;
+  }
+}
+
 export async function deleteJobDescription(id: string) {
+  const { error } = await supabase.from("job_descriptions").delete().eq("id", id);
+  if (error) throw error;
+}
   const { error } = await supabase.from("job_descriptions").delete().eq("id", id);
   if (error) throw error;
 }
