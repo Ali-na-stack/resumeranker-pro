@@ -1,0 +1,2 @@
+CREATE POLICY "Anyone can delete scores" ON public.candidate_scores FOR DELETE TO public USING (true);
+CREATE POLICY "Anyone can delete statuses" ON public.candidate_statuses FOR DELETE TO public USING (true);
