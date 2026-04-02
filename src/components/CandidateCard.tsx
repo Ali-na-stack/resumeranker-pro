@@ -82,13 +82,14 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
   };
 
   const displayName = biasReduction ? `Candidate #${candidate.id.slice(0, 6)}` : candidate.name || "Unknown";
-  const MAX_SKILLS = 3;
+  const MAX_SKILLS = index % 3 === 0 ? 4 : 3;
+  const animDelay = index * 80 + (index % 3) * 15;
 
   return (
     <>
       <Card
         className={`hover-lift hover:shadow-xl cursor-pointer group relative ${getLeftBorder(score)} animate-fade-in`}
-        style={{ animationDelay: `${index * 80}ms`, animationFillMode: "both" }}
+        style={{ animationDelay: `${animDelay}ms`, animationFillMode: "both" }}
         onClick={() => navigate(`/candidate/${candidate.id}?job=${candidate.job_description_id}`)}
       >
         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -116,8 +117,8 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
           {candidate.score?.matched_skills && candidate.score.matched_skills.length > 0 && (
             <div className="mb-3">
               <div className="flex flex-wrap gap-1">
-                {candidate.score.matched_skills.slice(0, MAX_SKILLS).map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-[10px] px-1.5 py-0 max-w-[100px] truncate">
+                {candidate.score.matched_skills.slice(0, MAX_SKILLS).map((skill, si) => (
+                  <Badge key={skill} variant="secondary" className={`text-[10px] px-1.5 py-0 max-w-[120px] truncate ${si === 0 ? "bg-primary/15 text-primary" : ""}`}>
                     {skill}
                   </Badge>
                 ))}
@@ -151,7 +152,7 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
             <Button
               size="sm"
               variant={candidate.status === "shortlisted" ? "default" : "outline"}
-              className="flex-1 h-8 text-xs gap-1"
+              className="flex-1 h-8 text-xs gap-1 hover-glow"
               onClick={() => handleStatus("shortlisted")}
             >
               <Star className="h-3 w-3" />
@@ -160,7 +161,7 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
             <Button
               size="sm"
               variant={candidate.status === "rejected" ? "destructive" : "outline"}
-              className="flex-1 h-8 text-xs gap-1"
+              className="flex-1 h-8 text-xs gap-1 hover-underline-accent overflow-visible"
               onClick={() => handleStatus("rejected")}
             >
               <X className="h-3 w-3" />
@@ -169,7 +170,7 @@ export function CandidateCard({ candidate, biasReduction, onStatusChange, index 
             <Button
               size="sm"
               variant={candidate.status === "saved" ? "secondary" : "outline"}
-              className="h-8 text-xs px-2.5"
+              className="h-8 text-xs px-2.5 hover-scale-sm"
               onClick={() => handleStatus("saved")}
             >
               <Bookmark className="h-3 w-3" />

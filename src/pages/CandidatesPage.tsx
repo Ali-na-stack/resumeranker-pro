@@ -128,11 +128,12 @@ export default function CandidatesPage({ biasReduction, filterStatus }: Candidat
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((c) => (
+            {filtered.map((c, i) => (
               <CandidateCard
                 key={c.id}
                 candidate={c}
                 biasReduction={biasReduction}
+                index={i}
                 onStatusChange={() =>
                   fetchCandidatesWithScores(selectedJob).then(setCandidates)
                 }

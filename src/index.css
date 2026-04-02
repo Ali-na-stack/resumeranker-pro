@@ -165,6 +165,31 @@
     box-shadow: 0 8px 25px -8px hsl(var(--primary) / 0.15);
   }
 
+  .hover-glow {
+    @apply transition-all duration-200;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.25);
+  }
+
+  .hover-underline-accent {
+    @apply transition-all duration-200 relative;
+  }
+  .hover-underline-accent::after {
+    content: "";
+    @apply absolute bottom-0 left-1/4 right-1/4 h-[1.5px] bg-destructive scale-x-0 transition-transform duration-200 origin-center;
+  }
+  .hover-underline-accent:hover::after {
+    @apply scale-x-100;
+  }
+
+  .hover-scale-sm {
+    @apply transition-transform duration-200;
+  }
+  .hover-scale-sm:hover {
+    transform: scale(1.08);
+  }
+
   .glass-card {
     @apply bg-card/80 backdrop-blur-md border border-border/50;
   }
