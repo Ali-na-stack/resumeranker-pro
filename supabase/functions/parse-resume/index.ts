@@ -69,9 +69,19 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { job_description_id, resume_url, resume_filename, file_base64, mime_type, resume_text } = await req.json();
+    let body: any;
+    try {
+      body = await req.json();
+    } catch (parseErr) {
+      console.error("Failed to parse request body:", parseErr);
+      return new Response(JSON.stringify({ error: "Invalid request body - could not parse JSON" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { job_description_id, resume_url, resume_filename, file_base64, mime_type, resume_text } = body;
     if (!job_description_id) throw new Error("job_description_id is required");
-    if (!file_base64 && !resume_text) throw new Error("file_base64 or resume_text is required");
+    if (!file_base64 && !resume_text) throw new Error("file_base64 or resume_text is required. Received keys: " + Object.keys(body).join(", "));
 
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY not configured");
