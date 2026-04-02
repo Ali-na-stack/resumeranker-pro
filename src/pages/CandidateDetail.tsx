@@ -39,8 +39,8 @@ function ResumeButton({ resumeUrl }: { resumeUrl: string }) {
   };
   return (
     <Button variant="outline" className="w-full" onClick={handleClick}>
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-      {loading ? "Generating link…" : "View Original Resume"}
+      <FileText className="h-4 w-4" />
+      View Original Resume
     </Button>
   );
 }
